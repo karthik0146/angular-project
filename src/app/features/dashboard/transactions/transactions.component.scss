@@ -1,0 +1,123 @@
+@import '../../../../styles/variables';
+
+.transactions-container {
+    padding: $spacing-lg;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+    
+    @include respond-to(xs) {
+        padding: $spacing-md;
+        gap: $spacing-md;
+    }
+}
+
+.filters-panel {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+    
+    @include respond-to(xs) {
+        flex-direction: column;
+        gap: $spacing-sm;
+    }
+}
+
+.filters-form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+    flex: 1;
+    
+    @include respond-to(xs) {
+        flex-direction: column;
+        width: 100%;
+        gap: $spacing-sm;
+        
+        .mat-mdc-form-field {
+            width: 100%;
+        }
+        
+        button {
+            width: 100%;
+        }
+    }
+}
+
+.transactions-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    
+    &::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+}
+
+table {
+    width: 100%;
+    min-width: 800px; // Minimum width to prevent squishing
+    
+    th, td {
+        padding: $spacing-md;
+        
+        @include respond-to(xs) {
+            padding: $spacing-sm;
+        }
+    }
+}
+
+.mat-column-actions {
+    width: 100px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.add-button {
+    margin-left: auto;
+    
+    @include respond-to(xs) {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+// Responsive card styles for mobile view
+@include respond-to(xs) {
+    .mat-mdc-card {
+        border-radius: 0;
+        box-shadow: none;
+        margin: -#{$spacing-md};
+    }
+    
+    .mat-mdc-row {
+        display: flex;
+        flex-direction: column;
+        padding: $spacing-sm 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+    
+    .mat-mdc-cell {
+        display: flex;
+        justify-content: space-between;
+        padding: $spacing-xs $spacing-sm;
+        
+        &::before {
+            content: attr(data-label);
+            font-weight: 500;
+        }
+    }
+}

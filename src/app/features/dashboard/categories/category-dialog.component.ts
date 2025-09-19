@@ -1,0 +1,156 @@
+import { Component, Inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { Category } from '../../../core/services/category.service';
+
+interface DialogData {
+    category?: Category;
+}
+
+interface IconOption {
+    name: string;
+    value: string;
+}
+
+@Component({
+    selector: 'app-category-dialog',
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+        MatButtonModule,
+        MatIconModule
+    ],
+    template: `
+        <h2 mat-dialog-title>{{ data.category ? 'Edit' : 'Add' }} Category</h2>
+        <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+            <div mat-dialog-content>
+                <mat-form-field appearance="outline">
+                    <mat-label>Name</mat-label>
+                    <input matInput formControlName="name">
+                    <mat-error *ngIf="categoryForm.get('name')?.errors?.['required']">
+                        Name is required
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Type</mat-label>
+                    <mat-select formControlName="type">
+                        <mat-option value="income">Income</mat-option>
+                        <mat-option value="expense">Expense</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Icon</mat-label>
+                    <mat-select formControlName="icon">
+                        <mat-option *ngFor="let icon of icons" [value]="icon.value">
+                            <mat-icon>{{ icon.value }}</mat-icon>
+                            <span class="icon-label">{{ icon.name }}</span>
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Color</mat-label>
+                    <input matInput type="color" formControlName="color">
+                </mat-form-field>
+            </div>
+
+            <div mat-dialog-actions>
+                <button mat-button type="button" (click)="onCancel()">Cancel</button>
+                <button mat-raised-button color="primary" type="submit"
+                    [disabled]="categoryForm.invalid">
+                    {{ data.category ? 'Update' : 'Add' }}
+                </button>
+            </div>
+        </form>
+    `,
+    styles: [`
+        :host {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        mat-form-field {
+            width: 100%;
+            margin-bottom: 16px;
+        }
+
+        .icon-label {
+            margin-left: 8px;
+        }
+
+        mat-option {
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            height: 40px;
+            padding: 0;
+            border: none;
+        }
+
+        .mat-dialog-actions {
+            justify-content: flex-end;
+            gap: 8px;
+        }
+    `]
+})
+export class CategoryDialogComponent {
+    categoryForm: FormGroup;
+    icons: IconOption[] = [
+        { name: 'Shopping', value: 'shopping_cart' },
+        { name: 'Food', value: 'restaurant' },
+        { name: 'Transport', value: 'directions_car' },
+        { name: 'Bills', value: 'receipt' },
+        { name: 'Entertainment', value: 'movie' },
+        { name: 'Health', value: 'local_hospital' },
+        { name: 'Education', value: 'school' },
+        { name: 'Travel', value: 'flight' },
+        { name: 'Salary', value: 'account_balance' },
+        { name: 'Investment', value: 'trending_up' },
+        { name: 'Gift', value: 'card_giftcard' },
+        { name: 'Other', value: 'category' }
+    ];
+
+    constructor(
+        private fb: FormBuilder,
+        private dialogRef: MatDialogRef<CategoryDialogComponent>,
+        @Inject(MAT_DIALOG_DATA) public data: DialogData
+    ) {
+        this.categoryForm = this.fb.group({
+            name: [data.category?.name || '', Validators.required],
+            type: [data.category?.type || 'expense', Validators.required],
+            icon: [data.category?.icon || 'category'],
+            color: [data.category?.color || '#000000']
+        });
+
+        if (data.category) {
+            this.categoryForm.get('type')?.disable();
+        }
+    }
+
+    onSubmit(): void {
+        if (this.categoryForm.valid) {
+            this.dialogRef.close(this.categoryForm.value);
+        }
+    }
+
+    onCancel(): void {
+        this.dialogRef.close();
+    }
+}
