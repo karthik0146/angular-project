@@ -146,7 +146,12 @@ export class CategoryDialogComponent {
 
     onSubmit(): void {
         if (this.categoryForm.valid) {
-            this.dialogRef.close(this.categoryForm.value);
+            const formValue = { ...this.categoryForm.value };
+            // Remove type for updates since it shouldn't be changed
+            if (this.data.category) {
+                delete formValue.type;
+            }
+            this.dialogRef.close(formValue);
         }
     }
 

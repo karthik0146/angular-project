@@ -14,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TransactionService, Transaction, TransactionFilters } from '../../../core/services/transaction.service';
 import { CategoryService, Category } from '../../../core/services/category.service';
 import { TransactionDialogComponent } from './transaction-dialog.component';
@@ -36,193 +37,188 @@ import { TransactionDialogComponent } from './transaction-dialog.component';
         MatButtonModule,
         MatIconModule,
         MatDialogModule,
-        MatChipsModule
+        MatChipsModule,
+        MatTooltipModule
     ],
     template: `
         <div class="transactions-container">
-            <div class="filters-panel">
-                <form [formGroup]="filterForm" class="filters-form">
-                    <mat-form-field>
-                        <mat-label>Date Range</mat-label>
-                        <mat-date-range-input [rangePicker]="picker">
-                            <input matStartDate formControlName="startDate" placeholder="Start date">
-                            <input matEndDate formControlName="endDate" placeholder="End date">
-                        </mat-date-range-input>
-                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                        <mat-date-range-picker #picker></mat-date-range-picker>
-                    </mat-form-field>
-
-                    <mat-form-field>
-                        <mat-label>Type</mat-label>
-                        <mat-select formControlName="type">
-                            <mat-option value="">All</mat-option>
-                            <mat-option value="income">Income</mat-option>
-                            <mat-option value="expense">Expense</mat-option>
-                        </mat-select>
-                    </mat-form-field>
-
-                    <mat-form-field>
-                        <mat-label>Category</mat-label>
-                        <mat-select formControlName="categoryId">
-                            <mat-option value="">All</mat-option>
-                            <mat-option *ngFor="let category of categories" [value]="category._id">
-                                {{ category.name }}
-                            </mat-option>
-                        </mat-select>
-                    </mat-form-field>
-
-                    <mat-form-field>
-                        <mat-label>Search</mat-label>
-                        <input matInput formControlName="search" placeholder="Search transactions...">
-                    </mat-form-field>
-
-                    <button mat-raised-button color="primary" (click)="applyFilters()">
-                        Apply Filters
-                    </button>
-
-                    <button mat-raised-button (click)="resetFilters()">
-                        Reset
-                    </button>
-                </form>
-
+            <!-- Header with title and add button -->
+            <div class="header-section">
+                <h2>Transactions</h2>
                 <button mat-raised-button color="primary" class="add-button" (click)="openTransactionDialog()">
                     <mat-icon>add</mat-icon>
-                    Add Transaction
+                    <span class="button-text">Add Transaction</span>
                 </button>
             </div>
 
-            <div class="transactions-table-container">
-                <table mat-table [dataSource]="transactions" matSort>
-                    <ng-container matColumnDef="date">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-                        <td mat-cell *matCellDef="let transaction">
-                            {{ transaction.date | date:'mediumDate' }}
-                        </td>
-                    </ng-container>
+            <!-- Filters Panel -->
+            <div class="filters-panel">
+                <form [formGroup]="filterForm" class="filters-form">
+                    <div class="filter-row">
+                        <mat-form-field class="date-range-field">
+                            <mat-label>Date Range</mat-label>
+                            <mat-date-range-input [rangePicker]="picker">
+                                <input matStartDate formControlName="startDate" placeholder="Start date">
+                                <input matEndDate formControlName="endDate" placeholder="End date">
+                            </mat-date-range-input>
+                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-date-range-picker #picker></mat-date-range-picker>
+                        </mat-form-field>
 
-                    <ng-container matColumnDef="type">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
-                        <td mat-cell *matCellDef="let transaction">
-                            <span [class]="transaction.type">
-                                {{ transaction.type | titlecase }}
-                            </span>
-                        </td>
-                    </ng-container>
+                        <mat-form-field class="type-field">
+                            <mat-label>Type</mat-label>
+                            <mat-select formControlName="type">
+                                <mat-option value="">All</mat-option>
+                                <mat-option value="income">Income</mat-option>
+                                <mat-option value="expense">Expense</mat-option>
+                            </mat-select>
+                        </mat-form-field>
 
-                    <ng-container matColumnDef="category">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
-                        <td mat-cell *matCellDef="let transaction">
-                            {{ getCategoryName(transaction.categoryId) }}
-                        </td>
-                    </ng-container>
+                        <mat-form-field class="category-field">
+                            <mat-label>Category</mat-label>
+                            <mat-select formControlName="categoryId">
+                                <mat-option value="">All</mat-option>
+                                <mat-option *ngFor="let category of categories" [value]="category._id">
+                                    {{ category.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
 
-                    <ng-container matColumnDef="amount">
-                        <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
-                        <td mat-cell *matCellDef="let transaction" [class.income]="transaction.type === 'income'"
-                            [class.expense]="transaction.type === 'expense'">
-                            ₹{{ transaction.amount | number:'1.2-2' }}
-                        </td>
-                    </ng-container>
+                    <div class="filter-row">
+                        <mat-form-field class="search-field">
+                            <mat-label>Search</mat-label>
+                            <input matInput formControlName="search" placeholder="Search transactions...">
+                            <mat-icon matSuffix>search</mat-icon>
+                        </mat-form-field>
 
-                    <ng-container matColumnDef="notes">
-                        <th mat-header-cell *matHeaderCellDef>Notes</th>
-                        <td mat-cell *matCellDef="let transaction">{{ transaction.notes }}</td>
-                    </ng-container>
+                        <div class="filter-actions">
+                            <button mat-raised-button color="primary" (click)="applyFilters()" type="button">
+                                <mat-icon>filter_list</mat-icon>
+                                <span class="button-text">Apply</span>
+                            </button>
 
-                    <ng-container matColumnDef="actions">
-                        <th mat-header-cell *matHeaderCellDef>Actions</th>
-                        <td mat-cell *matCellDef="let transaction">
+                            <button mat-button (click)="resetFilters()" type="button">
+                                <mat-icon>clear</mat-icon>
+                                <span class="button-text">Reset</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Transactions Content -->
+            <div class="transactions-content">
+                <!-- Desktop Table View -->
+                <div class="table-container desktop-view">
+                    <table mat-table [dataSource]="transactions" matSort class="transactions-table">
+                        <ng-container matColumnDef="date">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+                            <td mat-cell *matCellDef="let transaction">
+                                {{ transaction.date | date:'mediumDate' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="type">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
+                            <td mat-cell *matCellDef="let transaction">
+                                <span class="type-badge" [ngClass]="transaction.type">
+                                    {{ transaction.type | titlecase }}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="category">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+                            <td mat-cell *matCellDef="let transaction">
+                                <span class="category-name">{{ getCategoryName(transaction.categoryId) }}</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="amount">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+                            <td mat-cell *matCellDef="let transaction">
+                                <span class="amount" [ngClass]="transaction.type">
+                                    ₹{{ transaction.amount | number:'1.2-2' }}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="notes">
+                            <th mat-header-cell *matHeaderCellDef>Notes</th>
+                            <td mat-cell *matCellDef="let transaction">
+                                <span class="notes" [title]="transaction.notes">{{ transaction.notes }}</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef>Actions</th>
+                            <td mat-cell *matCellDef="let transaction">
+                                <div class="action-buttons">
+                                    <button mat-icon-button (click)="openTransactionDialog(transaction)" 
+                                            matTooltip="Edit">
+                                        <mat-icon>edit</mat-icon>
+                                    </button>
+                                    <button mat-icon-button color="warn" (click)="deleteTransaction(transaction)"
+                                            matTooltip="Delete">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="transaction-row"></tr>
+                    </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="mobile-view">
+                    <div class="transaction-card" *ngFor="let transaction of transactions" 
+                         [ngClass]="transaction.type">
+                        <div class="card-header">
+                            <div class="date-type">
+                                <span class="date">{{ transaction.date | date:'mediumDate' }}</span>
+                                <span class="type-badge" [ngClass]="transaction.type">
+                                    {{ transaction.type | titlecase }}
+                                </span>
+                            </div>
+                            <div class="amount" [ngClass]="transaction.type">
+                                ₹{{ transaction.amount | number:'1.2-2' }}
+                            </div>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="category">
+                                <mat-icon>category</mat-icon>
+                                <span>{{ getCategoryName(transaction.categoryId) }}</span>
+                            </div>
+                            <div class="notes" *ngIf="transaction.notes">
+                                <mat-icon>note</mat-icon>
+                                <span>{{ transaction.notes }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-actions">
                             <button mat-icon-button (click)="openTransactionDialog(transaction)">
                                 <mat-icon>edit</mat-icon>
                             </button>
                             <button mat-icon-button color="warn" (click)="deleteTransaction(transaction)">
                                 <mat-icon>delete</mat-icon>
                             </button>
-                        </td>
-                    </ng-container>
+                        </div>
+                    </div>
+                </div>
 
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-                </table>
-
+                <!-- Pagination -->
                 <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
-                    [length]="totalTransactions"></mat-paginator>
+                               [length]="totalTransactions"
+                               class="pagination">
+                </mat-paginator>
             </div>
         </div>
     `,
-    styles: [`
-        .transactions-container {
-            padding: 20px;
-        }
-
-        .filters-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 20px;
-        }
-
-        .filters-form {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            align-items: center;
-            flex: 1;
-        }
-
-        .add-button {
-            margin-left: 16px;
-        }
-
-        .transactions-table-container {
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        table {
-            width: 100%;
-        }
-
-        .mat-column-date {
-            min-width: 120px;
-        }
-
-        .mat-column-type {
-            min-width: 100px;
-        }
-
-        .mat-column-category {
-            min-width: 120px;
-        }
-
-        .mat-column-amount {
-            min-width: 100px;
-        }
-
-        .mat-column-notes {
-            min-width: 200px;
-        }
-
-        .mat-column-actions {
-            min-width: 100px;
-            text-align: right;
-        }
-
-        .income {
-            color: #4caf50;
-        }
-
-        .expense {
-            color: #f44336;
-        }
-
-        mat-form-field {
-            flex: 1;
-            min-width: 200px;
-            max-width: 300px;
-        }
-    `]
+    styleUrl: './transactions.component.scss'
 })
 export class TransactionsComponent implements OnInit {
     @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -257,23 +253,46 @@ export class TransactionsComponent implements OnInit {
     }
 
     private loadCategories(): void {
-        this.categoryService.getCategories().subscribe(categories => {
-            this.categories = categories;
+        this.categoryService.getCategories().subscribe({
+            next: (categories) => {
+                this.categories = categories;
+            },
+            error: (error) => {
+                let errorMessage = 'Error loading categories';
+                if (error?.error?.error) {
+                    errorMessage = error.error.error;
+                }
+                this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+            }
         });
     }
 
     loadTransactions(): void {
+        const pageIndex = this.paginator?.pageIndex || 0;
+        const pageSize = this.paginator?.pageSize || 10;
+        const sortBy = this.sort?.active || 'date';
+        const sortOrder = this.sort?.direction || 'desc';
+        
         const filters: TransactionFilters = {
             ...this.filterForm.value,
-            page: this.paginator?.pageIndex + 1 || 1,
-            limit: this.paginator?.pageSize || 10,
-            sortBy: this.sort?.active,
-            sortOrder: this.sort?.direction || 'desc'
+            page: pageIndex + 1,
+            limit: pageSize,
+            sortBy: sortBy,
+            sortOrder: sortOrder
         };
 
-        this.transactionService.getTransactions(filters).subscribe(response => {
-            this.transactions = response.transactions;
-            this.totalTransactions = response.pagination.total;
+        this.transactionService.getTransactions(filters).subscribe({
+            next: (response) => {
+                this.transactions = response.transactions;
+                this.totalTransactions = response.pagination.total;
+            },
+            error: (error) => {
+                let errorMessage = 'Error loading transactions';
+                if (error?.error?.error) {
+                    errorMessage = error.error.error;
+                }
+                this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+            }
         });
     }
 
@@ -282,13 +301,17 @@ export class TransactionsComponent implements OnInit {
     }
 
     applyFilters(): void {
-        this.paginator.firstPage();
+        if (this.paginator) {
+            this.paginator.firstPage();
+        }
         this.loadTransactions();
     }
 
     resetFilters(): void {
         this.filterForm.reset();
-        this.paginator.firstPage();
+        if (this.paginator) {
+            this.paginator.firstPage();
+        }
         this.loadTransactions();
     }
 
@@ -309,8 +332,14 @@ export class TransactionsComponent implements OnInit {
                             this.snackBar.open('Transaction updated successfully', 'Close', { duration: 3000 });
                             this.loadTransactions();
                         },
-                        error: () => {
-                            this.snackBar.open('Error updating transaction', 'Close', { duration: 3000 });
+                        error: (error) => {
+                            let errorMessage = 'Error updating transaction';
+                            if (error?.error?.error) {
+                                errorMessage = error.error.error;
+                            } else if (error?.error?.errors && error.error.errors.length > 0) {
+                                errorMessage = error.error.errors[0].msg;
+                            }
+                            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
                         }
                     });
                 } else {
@@ -319,8 +348,14 @@ export class TransactionsComponent implements OnInit {
                             this.snackBar.open('Transaction created successfully', 'Close', { duration: 3000 });
                             this.loadTransactions();
                         },
-                        error: () => {
-                            this.snackBar.open('Error creating transaction', 'Close', { duration: 3000 });
+                        error: (error) => {
+                            let errorMessage = 'Error creating transaction';
+                            if (error?.error?.error) {
+                                errorMessage = error.error.error;
+                            } else if (error?.error?.errors && error.error.errors.length > 0) {
+                                errorMessage = error.error.errors[0].msg;
+                            }
+                            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
                         }
                     });
                 }
@@ -335,8 +370,12 @@ export class TransactionsComponent implements OnInit {
                     this.snackBar.open('Transaction deleted successfully', 'Close', { duration: 3000 });
                     this.loadTransactions();
                 },
-                error: () => {
-                    this.snackBar.open('Error deleting transaction', 'Close', { duration: 3000 });
+                error: (error) => {
+                    let errorMessage = 'Error deleting transaction';
+                    if (error?.error?.error) {
+                        errorMessage = error.error.error;
+                    }
+                    this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
                 }
             });
         }

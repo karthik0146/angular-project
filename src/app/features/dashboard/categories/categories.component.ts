@@ -188,8 +188,17 @@ export class CategoriesComponent implements OnInit {
     }
 
     loadCategories(): void {
-        this.categoryService.getCategories().subscribe(categories => {
-            this.categories = categories;
+        this.categoryService.getCategories().subscribe({
+            next: (categories) => {
+                this.categories = categories;
+            },
+            error: (error) => {
+                let errorMessage = 'Error loading categories';
+                if (error?.error?.error) {
+                    errorMessage = error.error.error;
+                }
+                this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+            }
         });
     }
 
@@ -207,8 +216,14 @@ export class CategoriesComponent implements OnInit {
                             this.snackBar.open('Category updated successfully', 'Close', { duration: 3000 });
                             this.loadCategories();
                         },
-                        error: () => {
-                            this.snackBar.open('Error updating category', 'Close', { duration: 3000 });
+                        error: (error) => {
+                            let errorMessage = 'Error updating category';
+                            if (error?.error?.error) {
+                                errorMessage = error.error.error;
+                            } else if (error?.error?.errors && error.error.errors.length > 0) {
+                                errorMessage = error.error.errors[0].msg;
+                            }
+                            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
                         }
                     });
                 } else {
@@ -217,8 +232,14 @@ export class CategoriesComponent implements OnInit {
                             this.snackBar.open('Category created successfully', 'Close', { duration: 3000 });
                             this.loadCategories();
                         },
-                        error: () => {
-                            this.snackBar.open('Error creating category', 'Close', { duration: 3000 });
+                        error: (error) => {
+                            let errorMessage = 'Error creating category';
+                            if (error?.error?.error) {
+                                errorMessage = error.error.error;
+                            } else if (error?.error?.errors && error.error.errors.length > 0) {
+                                errorMessage = error.error.errors[0].msg;
+                            }
+                            this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
                         }
                     });
                 }
@@ -233,8 +254,12 @@ export class CategoriesComponent implements OnInit {
                     this.snackBar.open('Category deleted successfully', 'Close', { duration: 3000 });
                     this.loadCategories();
                 },
-                error: () => {
-                    this.snackBar.open('Error deleting category', 'Close', { duration: 3000 });
+                error: (error) => {
+                    let errorMessage = 'Error deleting category';
+                    if (error?.error?.error) {
+                        errorMessage = error.error.error;
+                    }
+                    this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
                 }
             });
         }

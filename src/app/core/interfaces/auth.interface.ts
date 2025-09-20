@@ -7,8 +7,9 @@ export interface User {
 }
 
 export interface UserSettings {
-    theme: 'light' | 'dark';
-    currency: 'INR' | 'USD' | 'EUR';
+    displayName: string;
+    theme: 'light' | 'dark' | 'system';
+    currency: 'INR' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'CAD' | 'CNY';
 }
 
 export interface AuthResponse {

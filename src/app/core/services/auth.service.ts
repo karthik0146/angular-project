@@ -47,7 +47,15 @@ export class AuthService {
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
         if (token && user) {
-            this.userSubject.next(JSON.parse(user));
+            const userData = JSON.parse(user);
+            this.userSubject.next(userData);
+            
+            // Initialize settings when loading user from localStorage
+            if (userData.settings) {
+                import('./settings.service').then(module => {
+                    // Settings service will auto-initialize
+                });
+            }
         }
     }
 
@@ -95,6 +103,14 @@ export class AuthService {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         this.userSubject.next(user);
+        
+        // Initialize settings service when user logs in
+        if (user.settings) {
+            // Import SettingsService and initialize settings
+            import('./settings.service').then(module => {
+                // The settings service constructor will automatically initialize with the user data
+            });
+        }
     }
 
     get isAuthenticated(): boolean {

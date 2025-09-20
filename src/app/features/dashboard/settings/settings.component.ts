@@ -23,7 +23,8 @@ import { takeUntil } from 'rxjs/operators';
         MatInputModule,
         MatButtonModule,
         MatCardModule,
-        MatSelectModule
+        MatSelectModule,
+        MatSnackBarModule
     ],
     template: `
         <div class="settings-container">
@@ -147,7 +148,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.settingsForm.get('theme')?.valueChanges
             .pipe(takeUntil(this.destroy$))
             .subscribe(theme => {
-                this.applyTheme(theme);
+                // Apply theme immediately when form value changes
+                this.settingsService.applyThemeManually(theme);
             });
     }
 
@@ -161,35 +163,31 @@ export class SettingsComponent implements OnInit, OnDestroy {
             const settings: UserSettings = this.settingsForm.value;
             this.settingsService.updateSettings(settings)
                 .pipe(takeUntil(this.destroy$))
-                .subscribe(
-                    () => {
+                .subscribe({
+                    next: () => {
                         this.snackBar.open('Settings saved successfully', 'Close', {
                             duration: 3000,
                             horizontalPosition: 'end',
                             verticalPosition: 'top'
                         });
+                        // Mark form as pristine after successful save
+                        this.settingsForm.markAsPristine();
                     },
-                    error => {
+                    error: (error) => {
                         console.error('Error saving settings:', error);
-                        this.snackBar.open('Error saving settings', 'Close', {
-                            duration: 3000,
+                        let errorMessage = 'Error saving settings';
+                        if (error?.error?.error) {
+                            errorMessage = error.error.error;
+                        } else if (error?.error?.errors && error.error.errors.length > 0) {
+                            errorMessage = error.error.errors[0].msg;
+                        }
+                        this.snackBar.open(errorMessage, 'Close', {
+                            duration: 5000,
                             horizontalPosition: 'end',
                             verticalPosition: 'top'
                         });
                     }
-                );
-        }
-    }
-
-    private applyTheme(theme: 'light' | 'dark' | 'system'): void {
-        const body = document.body;
-        body.classList.remove('light-theme', 'dark-theme');
-
-        if (theme === 'system') {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            body.classList.add(prefersDark ? 'dark-theme' : 'light-theme');
-        } else {
-            body.classList.add(`${theme}-theme`);
+                });
         }
     }
 }
