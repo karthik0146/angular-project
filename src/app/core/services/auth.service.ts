@@ -27,17 +27,33 @@ export class AuthService {
     }
 
     handleGoogleCallback(token: string): void {
+        console.log('Handling Google callback with token:', token ? 'Token present' : 'No token');
+        
         this.http.post<AuthResponse>(`${this.apiUrl}/google`, { token })
             .pipe(
                 tap(response => {
+                    console.log('Google login successful, user data:', response.user);
+                    // Store token and user data first
                     localStorage.setItem('token', response.token);
+                    localStorage.setItem('user', JSON.stringify(response.user));
                     this.userSubject.next(response.user);
+                    
+                    // Initialize settings service with the user data that already includes settings
+                    if (response.user.settings) {
+                        console.log('User has settings, initializing settings service...');
+                        import('./settings.service').then(() => {
+                            console.log('Settings service loaded after Google login');
+                        });
+                    }
+                    
                     this.router.navigate(['/dashboard']);
                 })
             )
             .subscribe({
                 error: (error) => {
-                    console.error('Google login error:', error);
+                    console.error('Google login error details:', error);
+                    console.error('Error status:', error.status);
+                    console.error('Error message:', error.error);
                     this.router.navigate(['/auth/login']);
                 }
             });

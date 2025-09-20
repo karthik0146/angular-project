@@ -28,11 +28,30 @@ export class SettingsService {
     }
     
     private initializeSettings(): void {
+        console.log('Initializing settings service...');
+        
         // Check if user has settings in localStorage first
+        const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
+        
+        if (!token) {
+            console.log('No token found, using default settings');
+            const defaultSettings = {
+                displayName: '',
+                currency: 'USD',
+                theme: 'system' as const
+            };
+            this.settingsSubject.next(defaultSettings);
+            this.applyTheme(defaultSettings.theme);
+            return;
+        }
+        
         if (user) {
             const userData = JSON.parse(user);
-            if (userData.settings) {
+            console.log('User data found in localStorage:', userData);
+            
+            if (userData.settings && Object.keys(userData.settings).length > 0) {
+                console.log('Using settings from localStorage:', userData.settings);
                 const settings = {
                     displayName: userData.settings.displayName || userData.name || '',
                     currency: userData.settings.currency || 'USD',
@@ -45,7 +64,8 @@ export class SettingsService {
             }
         }
         
-        // Otherwise load from server
+        // Only load from server if no settings found in localStorage
+        console.log('No settings in localStorage, loading from server...');
         this.loadSettings();
     }
 
