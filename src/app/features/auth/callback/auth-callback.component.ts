@@ -5,7 +5,8 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
     selector: 'app-auth-callback',
     standalone: true,
-    template: '<div>Processing login...</div>'
+    templateUrl: './auth-callback.component.html',
+    styleUrls: ['./auth-callback.component.scss']
 })
 export class AuthCallbackComponent implements OnInit {
     constructor(

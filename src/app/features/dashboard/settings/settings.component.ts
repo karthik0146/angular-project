@@ -26,79 +26,8 @@ import { takeUntil } from 'rxjs/operators';
         MatSelectModule,
         MatSnackBarModule
     ],
-    template: `
-        <div class="settings-container">
-            <mat-card>
-                <mat-card-header>
-                    <mat-card-title>User Settings</mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
-                        <mat-form-field>
-                            <mat-label>Display Name</mat-label>
-                            <input matInput 
-                                   type="text" 
-                                   formControlName="displayName" 
-                                   placeholder="Enter your display name">
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Currency</mat-label>
-                            <mat-select formControlName="currency">
-                                <mat-option *ngFor="let currency of currencies" 
-                                          [value]="currency.code">
-                                    {{currency.code}} ({{currency.symbol}}) - {{currency.name}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <mat-form-field>
-                            <mat-label>Theme</mat-label>
-                            <mat-select formControlName="theme">
-                                <mat-option *ngFor="let theme of themes" 
-                                          [value]="theme.value">
-                                    {{theme.label}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <div class="actions">
-                            <button mat-button type="button" 
-                                    (click)="settingsForm.reset()">
-                                Reset
-                            </button>
-                            <button mat-raised-button 
-                                    color="primary" 
-                                    type="submit" 
-                                    [disabled]="!settingsForm.valid || settingsForm.pristine">
-                                Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </mat-card-content>
-            </mat-card>
-        </div>
-    `,
-    styles: [`
-        .settings-container {
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            padding: 16px 0;
-        }
-
-        .actions {
-            margin-top: 16px;
-            display: flex;
-            justify-content: flex-end;
-        }
-    `]
+    templateUrl: './settings.component.html',
+    styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit, OnDestroy {
     settingsForm: FormGroup;

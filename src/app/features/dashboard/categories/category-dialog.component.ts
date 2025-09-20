@@ -32,83 +32,8 @@ interface IconOption {
         MatButtonModule,
         MatIconModule
     ],
-    template: `
-        <h2 mat-dialog-title>{{ data.category ? 'Edit' : 'Add' }} Category</h2>
-        <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
-            <div mat-dialog-content>
-                <mat-form-field appearance="outline">
-                    <mat-label>Name</mat-label>
-                    <input matInput formControlName="name">
-                    <mat-error *ngIf="categoryForm.get('name')?.errors?.['required']">
-                        Name is required
-                    </mat-error>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                    <mat-label>Type</mat-label>
-                    <mat-select formControlName="type">
-                        <mat-option value="income">Income</mat-option>
-                        <mat-option value="expense">Expense</mat-option>
-                    </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                    <mat-label>Icon</mat-label>
-                    <mat-select formControlName="icon">
-                        <mat-option *ngFor="let icon of icons" [value]="icon.value">
-                            <mat-icon>{{ icon.value }}</mat-icon>
-                            <span class="icon-label">{{ icon.name }}</span>
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                    <mat-label>Color</mat-label>
-                    <input matInput type="color" formControlName="color">
-                </mat-form-field>
-            </div>
-
-            <div mat-dialog-actions>
-                <button mat-button type="button" (click)="onCancel()">Cancel</button>
-                <button mat-raised-button color="primary" type="submit"
-                    [disabled]="categoryForm.invalid">
-                    {{ data.category ? 'Update' : 'Add' }}
-                </button>
-            </div>
-        </form>
-    `,
-    styles: [`
-        :host {
-            display: block;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        mat-form-field {
-            width: 100%;
-            margin-bottom: 16px;
-        }
-
-        .icon-label {
-            margin-left: 8px;
-        }
-
-        mat-option {
-            display: flex;
-            align-items: center;
-        }
-
-        input[type="color"] {
-            height: 40px;
-            padding: 0;
-            border: none;
-        }
-
-        .mat-dialog-actions {
-            justify-content: flex-end;
-            gap: 8px;
-        }
-    `]
+    templateUrl: './category-dialog.component.html',
+    styleUrls: ['./category-dialog.component.scss']
 })
 export class CategoryDialogComponent {
     categoryForm: FormGroup;

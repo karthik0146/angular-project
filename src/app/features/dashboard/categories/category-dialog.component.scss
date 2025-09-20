@@ -1,0 +1,30 @@
+:host {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+}
+
+mat-form-field {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.icon-label {
+    margin-left: 8px;
+}
+
+mat-option {
+    display: flex;
+    align-items: center;
+}
+
+input[type="color"] {
+    height: 40px;
+    padding: 0;
+    border: none;
+}
+
+.mat-dialog-actions {
+    justify-content: flex-end;
+    gap: 8px;
+}
