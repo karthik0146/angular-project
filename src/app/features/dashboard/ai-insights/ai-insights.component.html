@@ -1,42 +1,77 @@
 <div class="ai-insights-container">
-    <!-- Header Section -->
+    <!-- Enhanced Header Section -->
     <div class="header-section">
         <div class="header-content">
             <div class="title-section">
                 <div class="ai-icon">
-                    <mat-icon class="ai-brain">psychology</mat-icon>
+                    <div class="icon-wrapper">
+                        <mat-icon class="ai-brain">psychology</mat-icon>
+                        <div class="icon-pulse"></div>
+                    </div>
                 </div>
                 <div class="title-text">
                     <h1>AI Financial Insights</h1>
                     <p class="subtitle">Powered by advanced machine learning</p>
+                    <div class="status-badges">
+                        <span class="status-badge active">
+                            <mat-icon>check_circle</mat-icon>
+                            AI Active
+                        </span>
+                        <span class="status-badge confidence">
+                            <mat-icon>security</mat-icon>
+                            95% Confidence
+                        </span>
+                    </div>
                 </div>
             </div>
-            <button mat-fab 
-                    color="primary" 
-                    (click)="loadAIData()" 
-                    [disabled]="loading"
-                    class="refresh-btn"
-                    matTooltip="Refresh AI Insights">
-                <mat-icon>{{ loading ? 'hourglass_empty' : 'refresh' }}</mat-icon>
-            </button>
+            <div class="header-actions">
+                <button mat-stroked-button 
+                        class="insights-count-btn"
+                        *ngIf="insights.length">
+                    <mat-icon>insights</mat-icon>
+                    {{ insights.length }} Insights
+                </button>
+                <button mat-fab 
+                        color="primary" 
+                        (click)="loadAIData()" 
+                        [disabled]="loading"
+                        class="refresh-btn"
+                        matTooltip="Refresh AI Insights">
+                    <mat-icon [class.spinning]="loading">{{ loading ? 'hourglass_empty' : 'refresh' }}</mat-icon>
+                </button>
+            </div>
         </div>
         
-        <!-- Loading State -->
+        <!-- Enhanced Loading State -->
         <div *ngIf="loading" class="loading-section">
             <div class="loading-animation">
                 <div class="brain-loader">
                     <mat-icon>psychology</mat-icon>
+                    <div class="neural-network">
+                        <div class="node"></div>
+                        <div class="node"></div>
+                        <div class="node"></div>
+                        <div class="connection"></div>
+                        <div class="connection"></div>
+                    </div>
                 </div>
-                <mat-progress-bar mode="indeterminate" class="loading-bar"></mat-progress-bar>
-                <p class="loading-text">AI is analyzing your financial data...</p>
+                <div class="loading-progress">
+                    <mat-progress-bar mode="indeterminate" class="loading-bar"></mat-progress-bar>
+                    <div class="loading-steps">
+                        <span class="step active">Analyzing data...</span>
+                        <span class="step">Generating insights...</span>
+                        <span class="step">Finalizing recommendations...</span>
+                    </div>
+                </div>
+                <p class="loading-text">AI is processing your financial data</p>
             </div>
         </div>
     </div>
 
     <!-- Main Content Grid -->
     <div class="content-grid" *ngIf="!loading">
-        <!-- Financial Health Score -->
-        <mat-card *ngIf="financialHealthScore" class="health-score-card modern-card">
+        <!-- Enhanced Financial Health Score -->
+        <mat-card *ngIf="financialHealthScore" class="health-score-card modern-card featured-card">
             <div class="card-header">
                 <div class="header-icon health-icon">
                     <mat-icon>favorite</mat-icon>
@@ -44,6 +79,11 @@
                 <div class="header-text">
                     <h3>Financial Health Score</h3>
                     <p>AI-powered health assessment</p>
+                </div>
+                <div class="card-actions">
+                    <button mat-icon-button matTooltip="View Details">
+                        <mat-icon>info</mat-icon>
+                    </button>
                 </div>
             </div>
             <mat-card-content>
@@ -55,24 +95,51 @@
                                 <span class="score-total">/100</span>
                             </div>
                             <div class="pulse-ring"></div>
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" class="progress-bg"/>
+                                    <circle cx="50" cy="50" r="40" class="progress-fill" 
+                                            [style.stroke-dasharray]="251.2 * financialHealthScore.score / 100 + ' 251.2'"/>
+                                </svg>
+                            </div>
                         </div>
                         <div class="score-status" [ngClass]="getHealthScoreClass(financialHealthScore.score)">
+                            <mat-icon>{{ getHealthScoreIcon(financialHealthScore.score) }}</mat-icon>
                             {{ getHealthScoreLabel(financialHealthScore.score) }}
                         </div>
                     </div>
                     
                     <div class="factors-section">
-                        <h4>Key Factors</h4>
+                        <div class="section-header">
+                            <h4>Key Factors</h4>
+                            <mat-chip-listbox class="factor-filters">
+                                <mat-chip-option>All</mat-chip-option>
+                                <mat-chip-option>Positive</mat-chip-option>
+                                <mat-chip-option>Needs Attention</mat-chip-option>
+                            </mat-chip-listbox>
+                        </div>
                         <div class="factors-grid">
-                            <div *ngFor="let factor of financialHealthScore.factors" 
+                            <div *ngFor="let factor of financialHealthScore.factors; let i = index" 
                                  class="factor-item" 
-                                 [ngClass]="factor.impact">
+                                 [ngClass]="factor.impact"
+                                 [style.animation-delay.ms]="i * 100">
                                 <div class="factor-icon">
                                     <mat-icon>{{ getFactorIcon(factor.impact) }}</mat-icon>
                                 </div>
                                 <div class="factor-content">
-                                    <span class="factor-name">{{ factor.name }}</span>
+                                    <div class="factor-header">
+                                        <span class="factor-name">{{ factor.name }}</span>
+                                        <span class="factor-impact" [ngClass]="factor.impact">
+                                            {{ factor.impact | titlecase }}
+                                        </span>
+                                    </div>
                                     <span class="factor-desc">{{ factor.description }}</span>
+                                    <div class="factor-progress">
+                                        <div class="progress-bar" 
+                                             [style.width.%]="getFactorProgress(factor)"
+                                             [ngClass]="factor.impact">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -80,15 +147,27 @@
                 </div>
                 
                 <div class="improvements-section" *ngIf="financialHealthScore.improvements.length">
-                    <h4>🚀 Improvement Suggestions</h4>
-                    <div class="improvements-chips">
-                        <mat-chip-listbox class="improvement-chips">
-                            <mat-chip *ngFor="let improvement of financialHealthScore.improvements" 
-                                     class="improvement-chip">
-                                <mat-icon matChipAvatar>lightbulb</mat-icon>
-                                {{ improvement }}
-                            </mat-chip>
-                        </mat-chip-listbox>
+                    <div class="section-header">
+                        <h4>🚀 Improvement Suggestions</h4>
+                        <span class="suggestions-count">{{ financialHealthScore.improvements.length }} suggestions</span>
+                    </div>
+                    <div class="improvements-grid">
+                        <div *ngFor="let improvement of financialHealthScore.improvements; let i = index" 
+                             class="improvement-card"
+                             [style.animation-delay.ms]="i * 150">
+                            <div class="improvement-icon">
+                                <mat-icon>{{ getImprovementIcon(i) }}</mat-icon>
+                            </div>
+                            <div class="improvement-content">
+                                <span class="improvement-text">{{ improvement }}</span>
+                                <div class="improvement-actions">
+                                    <button mat-button class="action-btn">
+                                        <mat-icon>arrow_forward</mat-icon>
+                                        Learn More
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </mat-card-content>
@@ -223,8 +302,8 @@
                                     color="primary" 
                                     (click)="onInsightAction(insight)"
                                     class="action-btn">
-                                <mat-icon>{{ getActionIcon(insight.action || 'play_arrow') }}</mat-icon>
-                                {{ insight.action || 'Take Action' }}
+                                <mat-icon>{{ getActionIcon(insight.action) }}</mat-icon>
+                                {{ insight.action }}
                             </button>
                         </div>
                     </div>
@@ -317,25 +396,50 @@
                     </div>
                     
                     <div class="chat-input-section">
-                        <div class="input-container">
-                            <mat-form-field appearance="outline" class="chat-input-field">
-                                <mat-label>Ask me about your finances...</mat-label>
-                                <input matInput 
+                        <div class="whatsapp-input-container">
+                            <!-- Attachment/Emoji Button -->
+                            <button mat-icon-button class="attachment-button" matTooltip="Attach file or emoji">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                            
+                            <!-- Input Field Container -->
+                            <div class="whatsapp-input-wrapper">
+                                <input type="text"
                                        [(ngModel)]="currentMessage" 
                                        (keyup.enter)="sendMessage()"
+                                       (focus)="onInputFocus()"
+                                       (blur)="onInputBlur()"
                                        #messageInput
-                                       placeholder="e.g., How can I save more money?"
-                                       class="message-input">
-                                <mat-hint>Press Enter to send</mat-hint>
-                            </mat-form-field>
+                                       placeholder="Type a message about your finances..."
+                                       class="whatsapp-input"
+                                       autocomplete="off">
+                                
+                                <!-- Emoji Button -->
+                                <button mat-icon-button class="emoji-button" matTooltip="Emoji">
+                                    <mat-icon>sentiment_satisfied</mat-icon>
+                                </button>
+                            </div>
+                            
+                            <!-- Send/Voice Button -->
                             <button mat-fab 
-                                    color="primary" 
+                                    *ngIf="currentMessage.trim(); else voiceButton"
                                     (click)="sendMessage()"
-                                    [disabled]="!currentMessage.trim() || isTyping"
-                                    class="send-button"
+                                    [disabled]="isTyping"
+                                    class="whatsapp-send-button"
                                     matTooltip="Send Message">
                                 <mat-icon>{{ isTyping ? 'hourglass_empty' : 'send' }}</mat-icon>
                             </button>
+                            
+                            <ng-template #voiceButton>
+                                <button mat-fab class="whatsapp-voice-button" matTooltip="Voice Message">
+                                    <mat-icon>mic</mat-icon>
+                                </button>
+                            </ng-template>
+                        </div>
+                        
+                        <!-- Typing indicator hint -->
+                        <div class="input-status" [class.visible]="showInputHint">
+                            <span class="status-text">💡 Try asking: "How can I reduce my expenses?" or "Show me my spending patterns"</span>
                         </div>
                     </div>
                 </div>

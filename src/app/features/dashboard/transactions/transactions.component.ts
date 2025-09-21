@@ -153,8 +153,6 @@ export class TransactionsComponent implements OnInit {
             if (formData) {
 
                 if (transaction) {
-                    console.log('Updating transaction with data:', transaction);
-
                     this.transactionService.updateTransaction(transaction._id, formData).subscribe({
                         next: () => {
                             this.snackBar.open('Transaction updated successfully', 'Close', { duration: 3000 });
@@ -171,8 +169,6 @@ export class TransactionsComponent implements OnInit {
                         }
                     });
                 } else {
-                    console.log('Creating transaction with data:', formData);
-
                     this.transactionService.createTransaction(formData).subscribe({
                         next: () => {
                             this.snackBar.open('Transaction created successfully', 'Close', { duration: 3000 });

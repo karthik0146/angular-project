@@ -223,22 +223,11 @@ export class TransactionDialogComponent {
         if (transaction?.tags) {
             this.tags = Array.isArray(transaction.tags) ? [...transaction.tags] : [];
         }
-        
-        // Debug logging for edit mode
-        if (transaction) {
-            console.log('Editing transaction:', transaction);
-            console.log('Form initialized with values:', this.transactionForm.value);
-        }
-        
-        // Debug categories
-        console.log('Available categories:', data.categories);
-        console.log('Transaction categoryId:', transaction?.categoryId);
-    }
+   }
 
     get filteredCategories(): Category[] {
         const type = this.transactionForm.get('type')?.value;
         const filtered = this.data.categories.filter(category => category.type === type);
-        console.log(`Filtered categories for type '${type}':`, filtered);
         return filtered;
     }
 
@@ -310,9 +299,7 @@ export class TransactionDialogComponent {
 
     onSubmit(): void {
         if (this.transactionForm.valid) {
-            const formValue = this.transactionForm.value;
-            console.log('Form values before submission:', formValue);
-            
+            const formValue = this.transactionForm.value;            
             // Check if categoryId is valid
             if (!formValue.categoryId || formValue.categoryId.trim() === '') {
                 console.error('Category ID is empty or invalid');
@@ -337,25 +324,12 @@ export class TransactionDialogComponent {
                 formData.append('tags', JSON.stringify([]));
             }
 
-            // Debug what's being sent
-            console.log('Submitting FormData:');
-            console.log('- type:', formValue.type);
-            console.log('- amount:', formValue.amount);
-            console.log('- date:', formValue.date.toISOString());
-            console.log('- categoryId:', formValue.categoryId);
-            console.log('- notes:', formValue.notes);
-            console.log('- recurringType:', formValue.recurringType);
-            console.log('- tags:', JSON.stringify(this.tags));
+        
 
             this.dialogRef.close(formData);
         } else {
-            console.log('Form is invalid:', this.transactionForm.errors);
-            console.log('Control errors:');
             Object.keys(this.transactionForm.controls).forEach(key => {
                 const control = this.transactionForm.get(key);
-                if (control?.errors) {
-                    console.log(`${key}:`, control.errors);
-                }
                 control?.markAsTouched();
             });
         }

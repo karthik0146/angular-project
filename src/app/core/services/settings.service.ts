@@ -28,14 +28,12 @@ export class SettingsService {
     }
     
     private initializeSettings(): void {
-        console.log('Initializing settings service...');
         
         // Check if user has settings in localStorage first
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
         
         if (!token) {
-            console.log('No token found, using default settings');
             const defaultSettings = {
                 displayName: '',
                 currency: 'USD',
@@ -47,11 +45,8 @@ export class SettingsService {
         }
         
         if (user) {
-            const userData = JSON.parse(user);
-            console.log('User data found in localStorage:', userData);
-            
+            const userData = JSON.parse(user);            
             if (userData.settings && Object.keys(userData.settings).length > 0) {
-                console.log('Using settings from localStorage:', userData.settings);
                 const settings = {
                     displayName: userData.settings.displayName || userData.name || '',
                     currency: userData.settings.currency || 'USD',
@@ -65,16 +60,13 @@ export class SettingsService {
         }
         
         // Only load from server if no settings found in localStorage
-        console.log('No settings in localStorage, loading from server...');
         this.loadSettings();
     }
 
     loadSettings(): void {
-        console.log('Loading settings from server...');
         this.http.get<UserSettings>(`${this.apiUrl}/settings`)
             .subscribe({
                 next: (settings) => {
-                    console.log('Settings loaded:', settings);
                     this.settingsSubject.next(settings);
                     // Apply theme when settings are loaded
                     this.applyTheme(settings.theme);
@@ -94,15 +86,11 @@ export class SettingsService {
     }
 
     updateSettings(settings: UserSettings): Observable<UserSettings> {
-        console.log('Updating settings:', settings);
         return this.http.put<UserSettings>(`${this.apiUrl}/settings`, settings)
             .pipe(
                 tap(updatedSettings => {
-                    console.log('Settings updated successfully:', updatedSettings);
                     this.settingsSubject.next(updatedSettings);
-                    // Apply theme immediately when settings are updated
                     this.applyTheme(updatedSettings.theme);
-                    // Also update localStorage if user data exists
                     const user = localStorage.getItem('user');
                     if (user) {
                         const userData = JSON.parse(user);
@@ -119,7 +107,6 @@ export class SettingsService {
 
     // Apply theme globally
     private applyTheme(theme: 'light' | 'dark' | 'system'): void {
-        console.log('Applying theme:', theme);
         const body = document.body;
         body.classList.remove('light-theme', 'dark-theme');
 
@@ -127,11 +114,9 @@ export class SettingsService {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const appliedTheme = prefersDark ? 'dark-theme' : 'light-theme';
             body.classList.add(appliedTheme);
-            console.log('Applied system theme:', appliedTheme);
         } else {
             const appliedTheme = `${theme}-theme`;
             body.classList.add(appliedTheme);
-            console.log('Applied theme:', appliedTheme);
         }
         
         // Store the applied theme for persistence

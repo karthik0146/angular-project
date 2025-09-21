@@ -42,6 +42,7 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
     chatMessages: Array<{text: string, isUser: boolean}> = [];
     currentMessage = '';
     isTyping = false;
+    showInputHint = false;
     private shouldScrollToBottom = false;
     
     welcomeSuggestions = [
@@ -68,9 +69,7 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
     }
 
     async loadAIData(): Promise<void> {
-        this.loading = true;
-        console.log('🤖 Loading AI data...');
-        
+        this.loading = true;        
         try {
             // Reset insights
             this.insights = [];
@@ -78,7 +77,6 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
             // Load spending analysis with fallback
             this.aiService.analyzeSpendingPatterns('month').subscribe({
                 next: (analysis) => {
-                    console.log('✅ Spending analysis loaded:', analysis);
                     this.spendingAnalysis = analysis;
                     this.insights = [...this.insights, ...analysis.insights];
                 },
@@ -97,7 +95,6 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
             // Load budget prediction with fallback
             this.aiService.predictBudget().subscribe({
                 next: (prediction) => {
-                    console.log('✅ Budget prediction loaded:', prediction);
                     this.budgetPrediction = prediction;
                 },
                 error: (error) => {
@@ -115,7 +112,6 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
             // Load financial health score with fallback
             this.aiService.calculateFinancialHealthScore().subscribe({
                 next: (healthScore) => {
-                    console.log('✅ Health score loaded:', healthScore);
                     this.financialHealthScore = healthScore;
                 },
                 error: (error) => {
@@ -134,7 +130,6 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
             // Load recommendations with fallback
             this.aiService.getRecommendations().subscribe({
                 next: (recommendations) => {
-                    console.log('✅ Recommendations loaded:', recommendations);
                     this.insights = [...this.insights, ...recommendations];
                 },
                 error: (error) => {
@@ -168,7 +163,6 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
             // Delay to show loading animation
             setTimeout(() => {
                 this.loading = false;
-                console.log('✅ AI data loading completed');
             }, 1000);
         }
     }
@@ -252,7 +246,7 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
                 this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
             }
         } catch (err) {
-            console.log('Scroll error:', err);
+            // Silently handle scroll errors
         }
     }
 
@@ -318,6 +312,35 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
         return 'warn';
     }
 
+    getHealthScoreIcon(score: number): string {
+        if (score >= 80) return 'verified';
+        if (score >= 60) return 'check_circle';
+        if (score >= 40) return 'warning';
+        return 'error';
+    }
+
+    getFactorProgress(factor: any): number {
+        // Calculate progress based on factor impact
+        switch (factor.impact) {
+            case 'positive': return 85;
+            case 'negative': return 35;
+            default: return 60;
+        }
+    }
+
+    getImprovementIcon(improvement: string | number): string {
+        const icons = ['trending_up', 'savings', 'account_balance', 'star', 'lightbulb', 'speed'];
+        if (typeof improvement === 'number') {
+            return icons[improvement % icons.length];
+        }
+        // If it's a string, pick icon based on content
+        const improvementStr = improvement.toString().toLowerCase();
+        if (improvementStr.includes('save')) return 'savings';
+        if (improvementStr.includes('budget')) return 'account_balance';
+        if (improvementStr.includes('income')) return 'trending_up';
+        return 'lightbulb';
+    }
+
     getInsightIcon(type: string): string {
         switch (type) {
             case 'spending_pattern': return 'trending_up';
@@ -331,7 +354,17 @@ export class AIInsightsComponent implements OnInit, AfterViewChecked {
     onInsightAction(insight: AIInsight): void {
         if (insight.actionable && insight.action) {
             // You can implement specific actions here
-            console.log('Executing action:', insight.action);
         }
+    }
+
+    onInputFocus(): void {
+        this.showInputHint = true;
+    }
+
+    onInputBlur(): void {
+        // Delay hiding the hint to allow for clicking suggestions
+        setTimeout(() => {
+            this.showInputHint = false;
+        }, 200);
     }
 }
