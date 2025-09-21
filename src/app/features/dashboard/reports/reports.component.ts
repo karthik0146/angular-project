@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { 
     Chart, 
     ChartConfiguration, 
@@ -25,7 +27,7 @@ import {
 } from 'chart.js';
 import { forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { TransactionService, TransactionFilters } from '../../../core/services/transaction.service';
+import { TransactionService, TransactionFilters, Transaction } from '../../../core/services/transaction.service';
 import { CategoryService, Category } from '../../../core/services/category.service';
 
 // Register Chart.js components
@@ -56,113 +58,12 @@ Chart.register(
         MatDatepickerModule,
         MatNativeDateModule,
         MatButtonModule,
-        MatCardModule
+        MatCardModule,
+        MatIconModule,
+        MatProgressSpinnerModule
     ],
-    template: `
-        <div class="reports-container">
-            <form [formGroup]="filterForm" class="filters">
-                <mat-form-field>
-                    <mat-label>Report Type</mat-label>
-                    <mat-select formControlName="reportType">
-                        <mat-option value="monthly">Monthly</mat-option>
-                        <mat-option value="yearly">Yearly</mat-option>
-                    </mat-select>
-                </mat-form-field>
-
-                <ng-container *ngIf="filterForm.get('reportType')?.value === 'monthly'">
-                    <mat-form-field>
-                        <mat-label>Month & Year</mat-label>
-                        <input matInput [matDatepicker]="monthPicker" formControlName="date">
-                        <mat-datepicker-toggle matIconSuffix [for]="monthPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #monthPicker
-                            startView="multi-year"
-                            (yearSelected)="chosenYearHandler($event)"
-                            (monthSelected)="chosenMonthHandler($event, monthPicker)">
-                        </mat-datepicker>
-                    </mat-form-field>
-                </ng-container>
-
-                <ng-container *ngIf="filterForm.get('reportType')?.value === 'yearly'">
-                    <mat-form-field>
-                        <mat-label>Year</mat-label>
-                        <input matInput [matDatepicker]="yearPicker" formControlName="date">
-                        <mat-datepicker-toggle matIconSuffix [for]="yearPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #yearPicker
-                            startView="multi-year"
-                            (yearSelected)="chosenYearHandler($event, yearPicker)">
-                        </mat-datepicker>
-                    </mat-form-field>
-                </ng-container>
-
-                <button mat-raised-button color="primary" (click)="generateReport()">
-                    Generate Report
-                </button>
-            </form>
-
-            <div class="reports-grid">
-                <mat-card class="chart-card">
-                    <mat-card-header>
-                        <mat-card-title>Income vs Expense</mat-card-title>
-                    </mat-card-header>
-                    <mat-card-content>
-                        <canvas #barChart></canvas>
-                    </mat-card-content>
-                </mat-card>
-
-                <mat-card class="chart-card">
-                    <mat-card-header>
-                        <mat-card-title>Income by Category</mat-card-title>
-                    </mat-card-header>
-                    <mat-card-content>
-                        <canvas #incomeChart></canvas>
-                    </mat-card-content>
-                </mat-card>
-
-                <mat-card class="chart-card">
-                    <mat-card-header>
-                        <mat-card-title>Expense by Category</mat-card-title>
-                    </mat-card-header>
-                    <mat-card-content>
-                        <canvas #expenseChart></canvas>
-                    </mat-card-content>
-                </mat-card>
-
-                <mat-card class="chart-card">
-                    <mat-card-header>
-                        <mat-card-title>Balance Trend</mat-card-title>
-                    </mat-card-header>
-                    <mat-card-content>
-                        <canvas #lineChart></canvas>
-                    </mat-card-content>
-                </mat-card>
-            </div>
-        </div>
-    `,
-    styles: [`
-        .reports-container {
-            padding: 20px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .reports-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 24px;
-        }
-
-        .chart-card {
-            mat-card-content {
-                padding: 16px;
-                min-height: 300px;
-            }
-        }
-    `]
+    templateUrl: './reports.component.html',
+    styleUrls: ['./reports.component.scss']
 })
 export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
     @ViewChild('barChart') barChart!: ElementRef;
@@ -171,6 +72,9 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
     @ViewChild('lineChart') lineChart!: ElementRef;
     
     filterForm: FormGroup;
+    loading = false;
+    error: string | null = null;
+    hasData = false;
     
     private barChartInstance?: Chart;
     private incomeChartInstance?: Chart;
@@ -179,34 +83,111 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
 
     barChartOptions: ChartConfiguration['options'] = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: true,
-                position: 'top'
+                position: window.innerWidth < 768 ? 'bottom' : 'top',
+                labels: {
+                    boxWidth: window.innerWidth < 768 ? 12 : 15,
+                    padding: window.innerWidth < 768 ? 8 : 15,
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
+            },
+            tooltip: {
+                titleFont: {
+                    size: window.innerWidth < 768 ? 12 : 14
+                },
+                bodyFont: {
+                    size: window.innerWidth < 768 ? 10 : 12
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
             }
         }
     };
 
     pieChartOptions: ChartConfiguration['options'] = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
-                position: 'right'
+                position: window.innerWidth < 768 ? 'bottom' : 'right',
+                labels: {
+                    boxWidth: window.innerWidth < 768 ? 12 : 15,
+                    padding: window.innerWidth < 768 ? 8 : 15,
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
+            },
+            tooltip: {
+                titleFont: {
+                    size: window.innerWidth < 768 ? 12 : 14
+                },
+                bodyFont: {
+                    size: window.innerWidth < 768 ? 10 : 12
+                }
             }
         }
     };
 
     lineChartOptions: ChartConfiguration['options'] = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: true,
-                position: 'top'
+                position: window.innerWidth < 768 ? 'bottom' : 'top',
+                labels: {
+                    boxWidth: window.innerWidth < 768 ? 12 : 15,
+                    padding: window.innerWidth < 768 ? 8 : 15,
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
+            },
+            tooltip: {
+                titleFont: {
+                    size: window.innerWidth < 768 ? 12 : 14
+                },
+                bodyFont: {
+                    size: window.innerWidth < 768 ? 10 : 12
+                }
             }
         },
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                ticks: {
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: window.innerWidth < 768 ? 10 : 12
+                    }
+                }
             }
         }
     };
@@ -263,27 +244,75 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
         private transactionService: TransactionService,
         private categoryService: CategoryService
     ) {
+        console.log('=== REPORTS COMPONENT CONSTRUCTOR ===');
         this.filterForm = this.fb.group({
             reportType: ['monthly'],
             date: [new Date()]
         });
+        console.log('Form initialized:', this.filterForm.value);
+    }
+
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        // Debounce resize events
+        setTimeout(() => {
+            this.updateChartResponsiveness();
+        }, 100);
+    }
+
+    private updateChartResponsiveness(): void {
+        const isMobile = window.innerWidth < 768;
+        
+        // Simply resize charts without changing options to avoid type issues
+        if (this.barChartInstance) {
+            this.barChartInstance.resize();
+        }
+        if (this.incomeChartInstance) {
+            this.incomeChartInstance.resize();
+        }
+        if (this.expenseChartInstance) {
+            this.expenseChartInstance.resize();
+        }
+        if (this.lineChartInstance) {
+            this.lineChartInstance.resize();
+        }
     }
 
     ngOnInit(): void {
-        this.categoryService.getCategories().subscribe(categories => {
-            this.categories = categories;
-            this.generateReport();
+        console.log('=== REPORTS COMPONENT INIT ===');
+        console.log('Loading categories and generating initial report...');
+        
+        this.categoryService.getCategories().subscribe({
+            next: (categories) => {
+                console.log('Categories loaded:', categories);
+                this.categories = categories;
+                this.generateReport();
+            },
+            error: (error) => {
+                console.error('Error loading categories:', error);
+                this.error = 'Failed to load categories';
+                this.loading = false;
+            }
         });
         
         this.filterForm.get('reportType')?.valueChanges.subscribe(() => {
+            console.log('Report type changed, regenerating report...');
             this.generateReport();
         });
     }
 
     ngAfterViewInit(): void {
-        if (this.barChart && this.incomeChart && this.expenseChart && this.lineChart) {
-            this.initializeCharts();
-        }
+        console.log('=== REPORTS COMPONENT AFTER VIEW INIT ===');
+        console.log('View elements:', {
+            barChart: !!this.barChart,
+            incomeChart: !!this.incomeChart,
+            expenseChart: !!this.expenseChart,
+            lineChart: !!this.lineChart
+        });
+        
+        // Don't initialize charts here - let the data loading process handle it
+        // Charts will be initialized when data is ready
+        console.log('Chart elements ready, waiting for data to initialize charts...');
     }
 
     ngOnDestroy(): void {
@@ -291,8 +320,11 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     generateReport(): void {
+        console.log('=== GENERATE REPORT CALLED ===');
         const date = this.filterForm.get('date')?.value;
         const reportType = this.filterForm.get('reportType')?.value;
+
+        console.log('Report parameters:', { date, reportType });
 
         let startDate: Date;
         let endDate: Date;
@@ -300,10 +332,12 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
         if (reportType === 'monthly') {
             startDate = new Date(date.getFullYear(), date.getMonth(), 1);
             endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            console.log('Generating monthly report from', startDate, 'to', endDate);
             this.generateMonthlyReport(startDate, endDate);
         } else {
             startDate = new Date(date.getFullYear(), 0, 1);
             endDate = new Date(date.getFullYear(), 11, 31);
+            console.log('Generating yearly report from', startDate, 'to', endDate);
             this.generateYearlyReport(startDate, endDate);
         }
     }
@@ -349,10 +383,23 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     private initializeCharts(): void {
+        console.log('initializeCharts called');
+        console.log('Current chart data:', {
+            barChartData: this.barChartData,
+            incomePieChartData: this.incomePieChartData,
+            expensePieChartData: this.expensePieChartData,
+            lineChartData: this.lineChartData
+        });
+        
         try {
             if (!this.barChart?.nativeElement || !this.incomeChart?.nativeElement || 
                 !this.expenseChart?.nativeElement || !this.lineChart?.nativeElement) {
-                console.warn('Chart elements not found');
+                console.warn('Chart elements not found:', {
+                    barChart: !!this.barChart?.nativeElement,
+                    incomeChart: !!this.incomeChart?.nativeElement,
+                    expenseChart: !!this.expenseChart?.nativeElement,
+                    lineChart: !!this.lineChart?.nativeElement
+                });
                 return;
             }
 
@@ -364,6 +411,7 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
             const lineCtx = this.lineChart.nativeElement.getContext('2d');
 
             if (barCtx && incomeCtx && expenseCtx && lineCtx) {
+                console.log('Creating bar chart with data:', this.barChartData);
                 this.barChartInstance = new Chart(barCtx, {
                     type: 'bar',
                     data: this.barChartData,
@@ -374,6 +422,7 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
                     }
                 });
 
+                console.log('Creating income pie chart with data:', this.incomePieChartData);
                 this.incomeChartInstance = new Chart(incomeCtx, {
                     type: 'pie',
                     data: this.incomePieChartData,
@@ -384,6 +433,7 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
                     }
                 });
 
+                console.log('Creating expense pie chart with data:', this.expensePieChartData);
                 this.expenseChartInstance = new Chart(expenseCtx, {
                     type: 'pie',
                     data: this.expensePieChartData,
@@ -394,6 +444,7 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
                     }
                 });
 
+                console.log('Creating line chart with data:', this.lineChartData);
                 this.lineChartInstance = new Chart(lineCtx, {
                     type: 'line',
                     data: this.lineChartData,
@@ -403,99 +454,236 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
                         maintainAspectRatio: false
                     }
                 });
+
+                console.log('All charts initialized successfully');
+            } else {
+                console.error('Failed to get canvas contexts');
             }
         } catch (error) {
             console.error('Error initializing charts:', error);
         }
     }
 
+    private renderChartsWithData(): void {
+        console.log('=== RENDERING CHARTS WITH DATA ===');
+        console.log('Chart elements available:', {
+            barChart: !!this.barChart?.nativeElement,
+            incomeChart: !!this.incomeChart?.nativeElement,
+            expenseChart: !!this.expenseChart?.nativeElement,
+            lineChart: !!this.lineChart?.nativeElement
+        });
+
+        // Ensure all chart elements are available
+        if (!this.barChart?.nativeElement || !this.incomeChart?.nativeElement || 
+            !this.expenseChart?.nativeElement || !this.lineChart?.nativeElement) {
+            console.error('Chart elements not ready yet, retrying...');
+            setTimeout(() => this.renderChartsWithData(), 200);
+            return;
+        }
+
+        // Destroy existing charts
+        this.destroyCharts();
+
+        // Create new charts with current data
+        try {
+            const barCtx = this.barChart.nativeElement.getContext('2d');
+            const incomeCtx = this.incomeChart.nativeElement.getContext('2d');
+            const expenseCtx = this.expenseChart.nativeElement.getContext('2d');
+            const lineCtx = this.lineChart.nativeElement.getContext('2d');
+
+            if (barCtx && incomeCtx && expenseCtx && lineCtx) {
+                console.log('Creating charts with data...');
+
+                // Bar Chart
+                this.barChartInstance = new Chart(barCtx, {
+                    type: 'bar',
+                    data: this.barChartData,
+                    options: {
+                        ...this.barChartOptions,
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                // Income Pie Chart
+                this.incomeChartInstance = new Chart(incomeCtx, {
+                    type: 'pie',
+                    data: this.incomePieChartData,
+                    options: {
+                        ...this.pieChartOptions,
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                // Expense Pie Chart
+                this.expenseChartInstance = new Chart(expenseCtx, {
+                    type: 'pie',
+                    data: this.expensePieChartData,
+                    options: {
+                        ...this.pieChartOptions,
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                // Line Chart
+                this.lineChartInstance = new Chart(lineCtx, {
+                    type: 'line',
+                    data: this.lineChartData,
+                    options: {
+                        ...this.lineChartOptions,
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                console.log('All charts created successfully!');
+                console.log('Final chart data:', {
+                    barData: this.barChartData,
+                    incomeData: this.incomePieChartData,
+                    expenseData: this.expensePieChartData,
+                    lineData: this.lineChartData
+                });
+            } else {
+                console.error('Could not get chart contexts');
+            }
+        } catch (error) {
+            console.error('Error creating charts:', error);
+        }
+    }
+
     private updateCharts(): void {
+        console.log('updateCharts called');
+        console.log('Chart instances:', {
+            barChart: !!this.barChartInstance,
+            incomeChart: !!this.incomeChartInstance,
+            expenseChart: !!this.expenseChartInstance,
+            lineChart: !!this.lineChartInstance
+        });
+
         if (this.barChartInstance && this.incomeChartInstance && 
             this.expenseChartInstance && this.lineChartInstance) {
+            
+            console.log('Updating existing charts with new data');
+            
             // Update all charts with new data
             this.barChartInstance.data = this.barChartData;
             this.barChartInstance.update('none');
+            console.log('Bar chart updated');
 
             this.incomeChartInstance.data = this.incomePieChartData;
             this.incomeChartInstance.update('none');
+            console.log('Income chart updated with data:', this.incomePieChartData);
 
             this.expenseChartInstance.data = this.expensePieChartData;
             this.expenseChartInstance.update('none');
+            console.log('Expense chart updated with data:', this.expensePieChartData);
 
             this.lineChartInstance.data = this.lineChartData;
             this.lineChartInstance.update('none');
+            console.log('Line chart updated');
         } else {
+            console.log('Charts not initialized, initializing now...');
             // Initialize charts if they don't exist
             this.initializeCharts();
         }
     }
 
     private generateMonthlyReport(startDate: Date, endDate: Date): void {
+        console.log('Generating monthly report from', startDate, 'to', endDate);
+        this.loading = true;
+        this.error = null;
+        
         const filters: TransactionFilters = {
             startDate,
             endDate
         };
 
-        this.transactionService.getTransactions(filters).subscribe(response => {
-            const transactions = response.transactions;
-            const days = Array.from({ length: endDate.getDate() }, (_, i) => i + 1);
-
-            // Process data for bar chart
-            const incomeData = new Array(days.length).fill(0);
-            const expenseData = new Array(days.length).fill(0);
-
-            transactions.forEach(transaction => {
-                const day = new Date(transaction.date).getDate() - 1;
-                if (transaction.type === 'income') {
-                    incomeData[day] += transaction.amount;
-                } else {
-                    expenseData[day] += transaction.amount;
+        this.transactionService.getTransactions(filters).subscribe({
+            next: (response) => {
+                console.log('Transactions received:', response);
+                const transactions = response.transactions;
+                console.log('Categories available:', this.categories);
+                
+                if (!transactions || transactions.length === 0) {
+                    console.log('No transactions found for the selected period');
+                    this.hasData = false;
+                    this.loading = false;
+                    return;
                 }
-            });
 
-            this.barChartData = {
-                labels: days.map(d => d.toString()),
-                datasets: [
-                    {
-                        label: 'Income',
-                        data: incomeData,
-                        backgroundColor: 'rgba(76, 175, 80, 0.5)'
-                    },
-                    {
-                        label: 'Expense',
-                        data: expenseData,
-                        backgroundColor: 'rgba(244, 67, 54, 0.5)'
+                this.hasData = true;
+                const days = Array.from({ length: endDate.getDate() }, (_, i) => i + 1);
+
+                // Process data for bar chart
+                const incomeData = new Array(days.length).fill(0);
+                const expenseData = new Array(days.length).fill(0);
+
+                transactions.forEach(transaction => {
+                    const day = new Date(transaction.date).getDate() - 1;
+                    if (transaction.type === 'income') {
+                        incomeData[day] += transaction.amount;
+                    } else {
+                        expenseData[day] += transaction.amount;
                     }
-                ]
-            };
+                });
 
-            // Process data for pie charts
-            this.updatePieCharts(transactions);
+                this.barChartData = {
+                    labels: days.map(d => d.toString()),
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeData,
+                            backgroundColor: 'rgba(76, 175, 80, 0.5)'
+                        },
+                        {
+                            label: 'Expense',
+                            data: expenseData,
+                            backgroundColor: 'rgba(244, 67, 54, 0.5)'
+                        }
+                    ]
+                };
 
-            // Process data for line chart
-            const balanceData = days.map((_, index) => {
-                let balance = 0;
-                transactions
-                    .filter(t => new Date(t.date).getDate() <= index + 1)
-                    .forEach(t => {
-                        balance += t.type === 'income' ? t.amount : -t.amount;
-                    });
-                return balance;
-            });
+                // Process data for pie charts
+                this.updatePieCharts(transactions);
 
-            this.lineChartData = {
-                labels: days.map(d => d.toString()),
-                datasets: [{
-                    label: 'Balance',
-                    data: balanceData,
-                    fill: false,
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }]
-            };
+                // Process data for line chart
+                const balanceData = days.map((_, index) => {
+                    let balance = 0;
+                    transactions
+                        .filter(t => new Date(t.date).getDate() <= index + 1)
+                        .forEach(t => {
+                            balance += t.type === 'income' ? t.amount : -t.amount;
+                        });
+                    return balance;
+                });
 
-            // Update all charts with new data
-            this.updateCharts();
+                this.lineChartData = {
+                    labels: days.map(d => d.toString()),
+                    datasets: [{
+                        label: 'Balance',
+                        data: balanceData,
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                };
+
+                this.loading = false;
+                console.log('Data processing complete, chart data ready');
+                
+                // Use a longer timeout to ensure DOM is ready
+                setTimeout(() => {
+                    console.log('Attempting to render charts...');
+                    this.renderChartsWithData();
+                }, 300);
+            },
+            error: (error) => {
+                console.error('Error fetching transactions:', error);
+                this.error = 'Failed to load report data. Please try again.';
+                this.loading = false;
+            }
         });
     }
 
@@ -571,25 +759,49 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
         });
     }
 
-    private updatePieCharts(transactions: any[]): void {
+    private updatePieCharts(transactions: Transaction[]): void {
+        console.log('updatePieCharts called with transactions:', transactions);
+        console.log('Available categories:', this.categories);
+        
         const incomeByCategory = new Map<string, { amount: number; name: string; color: string }>();
         const expenseByCategory = new Map<string, { amount: number; name: string; color: string }>();
 
-        transactions.forEach(transaction => {
-            const category = this.categories.find(c => c._id === transaction.categoryId);
-            if (!category) return;
+        transactions.forEach((transaction, index) => {
+            console.log(`Processing transaction ${index + 1}:`, transaction);
+            
+            // Handle both populated and non-populated category data
+            let category: any;
+            if (typeof transaction.categoryId === 'string') {
+                // Category is not populated, find it by ID
+                category = this.categories.find(c => c._id === transaction.categoryId);
+                console.log(`Found category for ID ${transaction.categoryId}:`, category);
+            } else if (transaction.categoryId && typeof transaction.categoryId === 'object') {
+                // Category is populated
+                category = transaction.categoryId as any;
+                console.log('Category is populated:', category);
+            }
+
+            if (!category) {
+                console.warn('Category not found for transaction:', transaction);
+                return;
+            }
 
             const map = transaction.type === 'income' ? incomeByCategory : expenseByCategory;
-            const current = map.get(category._id)?.amount || 0;
-            map.set(category._id, {
+            const categoryId = typeof category === 'object' ? category._id : category;
+            const current = map.get(categoryId)?.amount || 0;
+            
+            map.set(categoryId, {
                 amount: current + transaction.amount,
-                name: category.name,
+                name: category.name || 'Unknown',
                 color: category.color || this.getRandomColor()
             });
         });
 
         const incomeData = Array.from(incomeByCategory.values());
         const expenseData = Array.from(expenseByCategory.values());
+
+        console.log('Processed income data:', incomeData);
+        console.log('Processed expense data:', expenseData);
 
         // Update income pie chart data
         this.incomePieChartData = {
@@ -611,8 +823,8 @@ export class ReportsComponent implements OnInit, OnDestroy, AfterViewInit {
             }]
         };
 
-        console.log('Income Data:', this.incomePieChartData);
-        console.log('Expense Data:', this.expensePieChartData);
+        console.log('Final Income Chart Data:', this.incomePieChartData);
+        console.log('Final Expense Chart Data:', this.expensePieChartData);
     }
 
     private getRandomColor(): string {

@@ -1,0 +1,415 @@
+.reports-container {
+    padding: 16px;
+    max-width: 100%;
+    
+    @media (min-width: 768px) {
+        padding: 24px;
+    }
+
+    @media (min-width: 1200px) {
+        padding: 32px;
+    }
+}
+
+// Filters Card
+.filters-card {
+    margin-bottom: 24px;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    mat-card-header {
+        padding: 20px 20px 0 20px;
+
+        @media (max-width: 480px) {
+            padding: 16px 16px 0 16px;
+        }
+
+        mat-card-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            mat-icon {
+                color: #666;
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+            }
+        }
+    }
+
+    mat-card-content {
+        padding: 20px;
+
+        @media (max-width: 480px) {
+            padding: 16px;
+        }
+    }
+}
+
+// Filter Form
+.filters-form {
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 20px;
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .filter-field {
+            flex: 1;
+            min-width: 200px;
+
+            @media (max-width: 768px) {
+                width: 100%;
+                min-width: unset;
+            }
+        }
+    }
+
+    .filter-actions {
+        display: flex;
+        justify-content: flex-start;
+        gap: 12px;
+
+        @media (max-width: 480px) {
+            justify-content: stretch;
+        }
+
+        .generate-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            padding: 12px 24px;
+
+            @media (max-width: 480px) {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    }
+}
+
+// Charts Grid
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+    
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 480px) {
+        gap: 16px;
+    }
+
+    // Specific chart layouts for different screen sizes
+    @media (min-width: 1200px) {
+        grid-template-columns: repeat(2, 1fr);
+        
+        .income-expense-chart {
+            grid-column: 1 / -1; // Full width for main chart
+        }
+    }
+
+    @media (min-width: 1600px) {
+        grid-template-columns: repeat(3, 1fr);
+        
+        .income-expense-chart {
+            grid-column: 1 / 3; // Span 2 columns
+        }
+        
+        .balance-trend {
+            grid-column: 1 / -1; // Full width for trend chart
+        }
+    }
+}
+
+// Chart Cards
+.chart-card {
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    mat-card-header {
+        padding: 20px 20px 0 20px;
+        
+        @media (max-width: 480px) {
+            padding: 16px 16px 0 16px;
+        }
+
+        mat-card-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            @media (max-width: 480px) {
+                font-size: 1rem;
+            }
+
+            mat-icon {
+                color: #666;
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+
+                @media (max-width: 480px) {
+                    font-size: 18px;
+                    width: 18px;
+                    height: 18px;
+                }
+            }
+        }
+    }
+
+    mat-card-content {
+        padding: 20px;
+        
+        @media (max-width: 768px) {
+            padding: 16px;
+        }
+
+        @media (max-width: 480px) {
+            padding: 12px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+
+            @media (max-width: 768px) {
+                height: 300px;
+            }
+
+            @media (max-width: 480px) {
+                height: 250px;
+            }
+
+            canvas {
+                max-width: 100%;
+                max-height: 100%;
+            }
+        }
+    }
+
+    // Specific styling for different chart types
+    &.income-expense-chart {
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(103, 58, 183, 0.05) 100%);
+    }
+
+    &.income-breakdown {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(139, 195, 74, 0.05) 100%);
+    }
+
+    &.expense-breakdown {
+        background: linear-gradient(135deg, rgba(244, 67, 54, 0.05) 0%, rgba(255, 87, 34, 0.05) 100%);
+    }
+
+    &.balance-trend {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 152, 0, 0.05) 100%);
+        
+        .chart-container {
+            height: 300px;
+            
+            @media (max-width: 768px) {
+                height: 250px;
+            }
+        }
+    }
+}
+
+// Loading State
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+
+    @media (max-width: 480px) {
+        padding: 60px 20px;
+    }
+
+    p {
+        margin-top: 20px;
+        color: #666;
+        font-size: 1rem;
+        font-weight: 500;
+
+        @media (max-width: 480px) {
+            font-size: 0.9rem;
+        }
+    }
+}
+
+// Error State
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+
+    @media (max-width: 480px) {
+        padding: 60px 20px;
+    }
+
+    mat-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        color: #f44336;
+        margin-bottom: 20px;
+
+        @media (max-width: 480px) {
+            font-size: 48px;
+            width: 48px;
+            height: 48px;
+        }
+    }
+
+    p {
+        margin: 0 0 24px 0;
+        color: #666;
+        font-size: 1.1rem;
+        max-width: 400px;
+
+        @media (max-width: 480px) {
+            font-size: 1rem;
+        }
+    }
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+// No Data State
+.no-data-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+
+    @media (max-width: 480px) {
+        padding: 60px 20px;
+    }
+
+    mat-icon {
+        font-size: 80px;
+        width: 80px;
+        height: 80px;
+        color: #999;
+        margin-bottom: 24px;
+        opacity: 0.6;
+
+        @media (max-width: 480px) {
+            font-size: 64px;
+            width: 64px;
+            height: 64px;
+        }
+    }
+
+    p {
+        margin: 0 0 8px 0;
+        color: #666;
+        font-size: 1.2rem;
+        font-weight: 500;
+
+        @media (max-width: 480px) {
+            font-size: 1rem;
+        }
+
+        &.subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #999;
+            margin: 0;
+
+            @media (max-width: 480px) {
+                font-size: 0.9rem;
+            }
+        }
+    }
+}
+
+// Enhanced mobile responsiveness
+@media (max-width: 600px) {
+    .reports-container {
+        padding: 12px;
+    }
+    
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-card {
+        mat-card-content .chart-container {
+            height: 220px;
+        }
+    }
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+    .filters-card,
+    .chart-card {
+        background: #1e1e1e;
+        border-color: rgba(255, 255, 255, 0.12);
+        
+        mat-card-header mat-card-title {
+            color: #e0e0e0;
+        }
+    }
+    
+    .loading-container p,
+    .error-container p,
+    .no-data-container p {
+        color: rgba(255, 255, 255, 0.7);
+    }
+}
+
+// High contrast support
+@media (prefers-contrast: high) {
+    .chart-card {
+        border: 2px solid #000;
+        
+        &:hover {
+            border-color: #2196f3;
+        }
+    }
+}

@@ -27,8 +27,9 @@ export interface SpendingAnalysis {
 
 export interface BudgetPrediction {
     nextMonthPrediction: number;
-    categoryBreakdown: Array<{ category: string; predicted: number; actual?: number }>;
+    categoryBreakdown: Array<{ category: string; predicted: number; actual?: number; percentage?: number }>;
     confidence: number;
+    trend?: 'increasing' | 'decreasing' | 'stable';
 }
 
 @Injectable({
