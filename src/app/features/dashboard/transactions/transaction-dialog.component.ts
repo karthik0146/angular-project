@@ -10,8 +10,10 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Transaction } from '../../../core/services/transaction.service';
 import { Category } from '../../../core/services/category.service';
+import { AIService } from '../../../core/services/ai.service';
 
 interface DialogData {
     transaction?: Transaction;
@@ -33,7 +35,8 @@ interface DialogData {
         MatNativeDateModule,
         MatButtonModule,
         MatChipsModule,
-        MatIconModule
+        MatIconModule,
+        MatProgressSpinnerModule
     ],
     template: `
         <h2 mat-dialog-title>{{ data.transaction ? 'Edit' : 'Add' }} Transaction</h2>
@@ -75,8 +78,36 @@ interface DialogData {
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                    <mat-label>Notes</mat-label>
-                    <textarea matInput formControlName="notes" rows="3"></textarea>
+                    <mat-label>Description</mat-label>
+                    <input matInput formControlName="notes" placeholder="e.g., Starbucks coffee">
+                </mat-form-field>
+
+                <!-- AI Categorization Button -->
+                <div class="ai-categorization" *ngIf="transactionForm.get('notes')?.value">
+                    <button mat-stroked-button color="accent" type="button" 
+                            (click)="suggestCategory()" 
+                            [disabled]="isLoadingAI">
+                        <mat-icon>psychology</mat-icon>
+                        <span *ngIf="!isLoadingAI">AI Suggest Category</span>
+                        <span *ngIf="isLoadingAI">
+                            <mat-spinner diameter="16" style="display: inline-block; margin-right: 8px;"></mat-spinner>
+                            Analyzing...
+                        </span>
+                    </button>
+                    <div *ngIf="aiSuggestion" class="ai-suggestion">
+                        <mat-icon color="accent">lightbulb</mat-icon>
+                        <span>AI suggests: <strong>{{aiSuggestion.category}}</strong> ({{aiSuggestion.confidence}}% confidence)</span>
+                        <button mat-button color="primary" (click)="applyAISuggestion()">Apply</button>
+                    </div>
+                </div>
+
+                <mat-form-field appearance="outline">
+                    <mat-label>Category</mat-label>
+                    <mat-select formControlName="categoryId">
+                        <mat-option *ngFor="let category of filteredCategories" [value]="category._id">
+                            {{ category.name }}
+                        </mat-option>
+                    </mat-select>
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
@@ -137,35 +168,78 @@ interface DialogData {
             justify-content: flex-end;
             gap: 8px;
         }
+
+        .ai-categorization {
+            margin: 16px 0;
+            
+            button {
+                margin-bottom: 8px;
+            }
+        }
+
+        .ai-suggestion {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: #f3e5f5;
+            border-radius: 8px;
+            margin-top: 8px;
+            
+            mat-icon {
+                color: #7b1fa2;
+            }
+            
+            strong {
+                color: #7b1fa2;
+            }
+        }
     `]
 })
 export class TransactionDialogComponent {
     transactionForm: FormGroup;
     tags: string[] = [];
     separatorKeysCodes = [13, 188]; // Enter and comma keys
+    isLoadingAI = false;
+    aiSuggestion: { category: string; confidence: number; categoryId?: string } | null = null;
 
     constructor(
         private fb: FormBuilder,
         private dialogRef: MatDialogRef<TransactionDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: DialogData
+        @Inject(MAT_DIALOG_DATA) public data: DialogData,
+        private aiService: AIService
     ) {
+        const transaction = data.transaction;
+        
         this.transactionForm = this.fb.group({
-            type: [data.transaction?.type || 'expense', Validators.required],
-            amount: [data.transaction?.amount || '', [Validators.required, Validators.min(0)]],
-            date: [data.transaction?.date || new Date(), Validators.required],
-            categoryId: [data.transaction?.categoryId || '', Validators.required],
-            notes: [data.transaction?.notes || ''],
-            recurringType: [data.transaction?.recurringType || 'none']
+            type: [transaction?.type || 'expense', Validators.required],
+            amount: [transaction?.amount || '', [Validators.required, Validators.min(0)]],
+            date: [transaction?.date ? new Date(transaction.date) : new Date(), Validators.required],
+            categoryId: [transaction?.categoryId || '', Validators.required],
+            notes: [transaction?.notes || ''],
+            recurringType: [transaction?.recurringType || 'none']
         });
 
-        if (data.transaction?.tags) {
-            this.tags = [...data.transaction.tags];
+        if (transaction?.tags) {
+            this.tags = Array.isArray(transaction.tags) ? [...transaction.tags] : [];
         }
+        
+        // Debug logging for edit mode
+        if (transaction) {
+            console.log('Editing transaction:', transaction);
+            console.log('Form initialized with values:', this.transactionForm.value);
+        }
+        
+        // Debug categories
+        console.log('Available categories:', data.categories);
+        console.log('Transaction categoryId:', transaction?.categoryId);
     }
 
     get filteredCategories(): Category[] {
         const type = this.transactionForm.get('type')?.value;
-        return this.data.categories.filter(category => category.type === type);
+        const filtered = this.data.categories.filter(category => category.type === type);
+        console.log(`Filtered categories for type '${type}':`, filtered);
+        return filtered;
     }
 
     addTag(event: any): void {
@@ -188,26 +262,102 @@ export class TransactionDialogComponent {
         }
     }
 
+    async suggestCategory(): Promise<void> {
+        const description = this.transactionForm.get('notes')?.value;
+        const amount = this.transactionForm.get('amount')?.value;
+        
+        if (!description) return;
+
+        this.isLoadingAI = true;
+        this.aiSuggestion = null;
+
+        try {
+            const suggestion = await this.aiService.categorizeTransaction(description, amount).toPromise();
+            
+            if (suggestion) {
+                // Find matching category from available categories
+                const matchingCategory = this.filteredCategories.find(cat => 
+                    cat.name.toLowerCase().includes(suggestion.suggestedCategory.toLowerCase()) ||
+                    suggestion.suggestedCategory.toLowerCase().includes(cat.name.toLowerCase())
+                );
+
+                this.aiSuggestion = {
+                    category: suggestion.suggestedCategory,
+                    confidence: suggestion.confidence,
+                    categoryId: matchingCategory?._id
+                };
+            }
+        } catch (error) {
+            console.error('AI categorization failed:', error);
+            // Show fallback message
+            this.aiSuggestion = {
+                category: 'Unable to categorize',
+                confidence: 0
+            };
+        } finally {
+            this.isLoadingAI = false;
+        }
+    }
+
+    applyAISuggestion(): void {
+        if (this.aiSuggestion?.categoryId) {
+            this.transactionForm.patchValue({
+                categoryId: this.aiSuggestion.categoryId
+            });
+        }
+        this.aiSuggestion = null;
+    }
+
     onSubmit(): void {
         if (this.transactionForm.valid) {
-            const formData = new FormData();
             const formValue = this.transactionForm.value;
+            console.log('Form values before submission:', formValue);
+            
+            // Check if categoryId is valid
+            if (!formValue.categoryId || formValue.categoryId.trim() === '') {
+                console.error('Category ID is empty or invalid');
+                this.transactionForm.get('categoryId')?.setErrors({ required: true });
+                return;
+            }
+            
+            const formData = new FormData();
 
-            Object.keys(formValue).forEach(key => {
-                if (formValue[key] !== null && formValue[key] !== undefined) {
-                    if (key === 'date') {
-                        formData.append(key, formValue[key].toISOString());
-                    } else {
-                        formData.append(key, formValue[key]);
-                    }
-                }
-            });
-
+            // Add form fields to FormData
+            formData.append('type', formValue.type);
+            formData.append('amount', formValue.amount.toString());
+            formData.append('date', formValue.date.toISOString());
+            formData.append('categoryId', formValue.categoryId.toString());
+            formData.append('notes', formValue.notes || '');
+            formData.append('recurringType', formValue.recurringType || 'none');
+            
+            // Handle tags
             if (this.tags.length > 0) {
                 formData.append('tags', JSON.stringify(this.tags));
+            } else {
+                formData.append('tags', JSON.stringify([]));
             }
 
+            // Debug what's being sent
+            console.log('Submitting FormData:');
+            console.log('- type:', formValue.type);
+            console.log('- amount:', formValue.amount);
+            console.log('- date:', formValue.date.toISOString());
+            console.log('- categoryId:', formValue.categoryId);
+            console.log('- notes:', formValue.notes);
+            console.log('- recurringType:', formValue.recurringType);
+            console.log('- tags:', JSON.stringify(this.tags));
+
             this.dialogRef.close(formData);
+        } else {
+            console.log('Form is invalid:', this.transactionForm.errors);
+            console.log('Control errors:');
+            Object.keys(this.transactionForm.controls).forEach(key => {
+                const control = this.transactionForm.get(key);
+                if (control?.errors) {
+                    console.log(`${key}:`, control.errors);
+                }
+                control?.markAsTouched();
+            });
         }
     }
 

@@ -1,0 +1,170 @@
+<div class="ai-insights-container">
+    <div class="header">
+        <h2>AI Financial Insights</h2>
+        <button mat-raised-button color="primary" (click)="loadAIData()" [disabled]="loading">
+            <mat-icon>refresh</mat-icon>
+            Refresh Insights
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p>Analyzing your financial data with AI...</p>
+    </div>
+
+    <!-- Financial Health Score -->
+    <mat-card *ngIf="financialHealthScore && !loading" class="health-score-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>favorite</mat-icon>
+                Financial Health Score
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="score-display">
+                <div class="score-circle" [attr.data-score]="financialHealthScore.score">
+                    <span class="score-number">{{ financialHealthScore.score }}</span>
+                    <span class="score-label">/100</span>
+                </div>
+                <div class="score-factors">
+                    <div *ngFor="let factor of financialHealthScore.factors" 
+                         class="factor" [ngClass]="factor.impact">
+                        <mat-icon>{{ factor.impact === 'positive' ? 'arrow_upward' : factor.impact === 'negative' ? 'arrow_downward' : 'remove' }}</mat-icon>
+                        <span>{{ factor.name }}: {{ factor.description }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="improvements" *ngIf="financialHealthScore.improvements.length">
+                <h4>Suggested Improvements:</h4>
+                <mat-chip-listbox>
+                    <mat-chip *ngFor="let improvement of financialHealthScore.improvements">
+                        {{ improvement }}
+                    </mat-chip>
+                </mat-chip-listbox>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Budget Prediction -->
+    <mat-card *ngIf="budgetPrediction && !loading" class="budget-prediction-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>trending_up</mat-icon>
+                Budget Prediction
+            </mat-card-title>
+            <mat-card-subtitle>
+                AI Confidence: {{ budgetPrediction.confidence }}%
+            </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="prediction-summary">
+                <h3>Next Month Prediction: ${{ budgetPrediction.nextMonthPrediction | number:'1.2-2' }}</h3>
+            </div>
+            <div class="category-breakdown" *ngIf="budgetPrediction.categoryBreakdown.length">
+                <h4>Category Breakdown:</h4>
+                <div class="category-item" *ngFor="let item of budgetPrediction.categoryBreakdown">
+                    <span class="category-name">{{ item.category }}</span>
+                    <span class="predicted-amount">${{ item.predicted | number:'1.2-2' }}</span>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Spending Analysis -->
+    <mat-card *ngIf="spendingAnalysis && !loading" class="spending-analysis-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>analytics</mat-icon>
+                Spending Analysis
+            </mat-card-title>
+            <mat-card-subtitle>
+                Trend: {{ spendingAnalysis.monthlyTrend | titlecase }}
+            </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="top-categories">
+                <h4>Top Spending Categories:</h4>
+                <div class="category-chart">
+                    <div *ngFor="let category of spendingAnalysis.topCategories" class="category-bar">
+                        <span class="category-label">{{ category.category }}</span>
+                        <div class="bar-container">
+                            <div class="bar" [style.width.%]="category.percentage"></div>
+                            <span class="percentage">{{ category.percentage }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recommendations" *ngIf="spendingAnalysis.recommendations.length">
+                <h4>AI Recommendations:</h4>
+                <ul>
+                    <li *ngFor="let recommendation of spendingAnalysis.recommendations">
+                        {{ recommendation }}
+                    </li>
+                </ul>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- AI Insights -->
+    <mat-card *ngIf="insights.length && !loading" class="insights-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>lightbulb</mat-icon>
+                AI Insights
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="insights-grid">
+                <div *ngFor="let insight of insights" class="insight-item" [ngClass]="insight.type">
+                    <div class="insight-header">
+                        <mat-icon>{{ getInsightIcon(insight.type) }}</mat-icon>
+                        <h4>{{ insight.title }}</h4>
+                        <span class="confidence">{{ insight.confidence }}%</span>
+                    </div>
+                    <p>{{ insight.description }}</p>
+                    <button *ngIf="insight.actionable" 
+                            mat-stroked-button 
+                            (click)="onInsightAction(insight)">
+                        {{ insight.action }}
+                    </button>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- AI Chat Assistant -->
+    <mat-card class="chat-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>chat</mat-icon>
+                AI Financial Assistant
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="chat-messages">
+                <div *ngFor="let message of chatMessages" 
+                     class="message" 
+                     [ngClass]="{'user-message': message.isUser, 'ai-message': !message.isUser}">
+                    <span>{{ message.text }}</span>
+                </div>
+            </div>
+            <div class="chat-input">
+                <mat-form-field class="full-width">
+                    <mat-label>Ask me about your finances...</mat-label>
+                    <input matInput 
+                           [(ngModel)]="currentMessage" 
+                           (keyup.enter)="sendMessage()"
+                           placeholder="e.g., How can I save more money?">
+                </mat-form-field>
+                <button mat-raised-button 
+                        color="primary" 
+                        (click)="sendMessage()"
+                        [disabled]="!currentMessage.trim()">
+                    <mat-icon>send</mat-icon>
+                </button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

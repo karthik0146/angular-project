@@ -95,7 +95,7 @@ export class TransactionsComponent implements OnInit {
         const pageSize = this.paginator?.pageSize || 10;
         const sortBy = this.sort?.active || 'date';
         const sortOrder = this.sort?.direction || 'desc';
-        
+
         const filters: TransactionFilters = {
             ...this.filterForm.value,
             page: pageIndex + 1,
@@ -119,8 +119,10 @@ export class TransactionsComponent implements OnInit {
         });
     }
 
-    getCategoryName(categoryId: string): string {
-        return this.categories.find(c => c._id === categoryId)?.name || '';
+    getCategoryName(categoryId: any): string {
+        return this.categories.find(c => c._id === categoryId._id)?.name || '';
+        
+   
     }
 
     applyFilters(): void {
@@ -149,7 +151,10 @@ export class TransactionsComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe((formData: FormData) => {
             if (formData) {
+
                 if (transaction) {
+                    console.log('Updating transaction with data:', transaction);
+
                     this.transactionService.updateTransaction(transaction._id, formData).subscribe({
                         next: () => {
                             this.snackBar.open('Transaction updated successfully', 'Close', { duration: 3000 });
@@ -166,6 +171,8 @@ export class TransactionsComponent implements OnInit {
                         }
                     });
                 } else {
+                    console.log('Creating transaction with data:', formData);
+
                     this.transactionService.createTransaction(formData).subscribe({
                         next: () => {
                             this.snackBar.open('Transaction created successfully', 'Close', { duration: 3000 });
