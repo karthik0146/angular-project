@@ -7,7 +7,7 @@ import { environment } from '../../../environments/environment';
 export class AuthConfigService {
     private readonly googleConfig = {
         client_id: environment.googleClientId,
-        redirect_uri: 'http://localhost:4200/auth/google/callback',
+        redirect_uri: environment.redirectUri,
         scope: 'openid email profile',
         response_type: 'id_token token',
         prompt: 'consent'
