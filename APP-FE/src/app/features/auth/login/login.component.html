@@ -1,0 +1,45 @@
+<div class="login-container">
+    <div class="login-card">
+        <h2>Login</h2>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email">
+                <mat-error *ngIf="loginForm.get('email')?.errors?.['required']">
+                    Email is required
+                </mat-error>
+                <mat-error *ngIf="loginForm.get('email')?.errors?.['email']">
+                    Please enter a valid email
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Password</mat-label>
+                <input matInput type="password" formControlName="password">
+                <mat-error *ngIf="loginForm.get('password')?.errors?.['required']">
+                    Password is required
+                </mat-error>
+            </mat-form-field>
+
+            <div class="button-container">
+                <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
+                    Login
+                </button>
+                <button mat-button type="button" (click)="goToRegister()">
+                    Create Account
+                </button>
+            </div>
+        </form>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <div class="social-login">
+            <button mat-stroked-button class="google-btn" (click)="loginWithGoogle()">
+                <img src="assets/google-logo.svg" alt="Google" class="google-icon">
+                <span>Continue with Google</span>
+            </button>
+        </div>
+    </div>
+</div>

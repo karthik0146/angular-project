@@ -1,0 +1,279 @@
+@use '@angular/material' as mat;
+
+// Include the common styles for Angular Material
+@include mat.core();
+
+// Define your theme
+$primary-palette: mat.define-palette(mat.$indigo-palette);
+$accent-palette: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$warn-palette: mat.define-palette(mat.$red-palette);
+
+// Create the theme object
+$theme: mat.define-light-theme((
+  color: (
+    primary: $primary-palette,
+    accent: $accent-palette,
+    warn: $warn-palette,
+  ),
+  typography: mat.define-typography-config(),
+  density: 0
+));
+
+// Include theme styles for core and each component used in your app
+@include mat.all-component-themes($theme);
+
+@import 'styles/variables';
+
+// Global styles
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+// Material Icons
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+// Responsive container
+.container {
+  width: 100%;
+  padding-right: $spacing-md;
+  padding-left: $spacing-md;
+  margin-right: auto;
+  margin-left: auto;
+
+  @include respond-to(sm) {
+    max-width: $container-sm;
+  }
+  @include respond-to(md) {
+    max-width: $container-md;
+  }
+  @include respond-to(lg) {
+    max-width: $container-lg;
+  }
+  @include respond-to(xl) {
+    max-width: $container-xl;
+  }
+}
+
+// Responsive grid system
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -$spacing-md;
+
+  @include respond-to(xs) {
+    margin: -$spacing-sm;
+  }
+}
+
+.col {
+  flex: 1 1 0;
+  padding: $spacing-md;
+
+  @include respond-to(xs) {
+    flex: 0 0 100%;
+    padding: $spacing-sm;
+  }
+}
+
+// Responsive typography
+h1 {
+  font-size: 2.5rem;
+  @include respond-to(xs) {
+    font-size: 2rem;
+  }
+}
+
+h2 {
+  font-size: 2rem;
+  @include respond-to(xs) {
+    font-size: 1.75rem;
+  }
+}
+
+// Responsive Material card styles
+.mat-mdc-card {
+  margin: $spacing-md;
+  
+  @include respond-to(xs) {
+    margin: $spacing-sm;
+  }
+}
+
+// Responsive table container
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+}
+
+// Responsive form fields
+.mat-mdc-form-field {
+  width: 100%;
+  margin-bottom: $spacing-md;
+  
+  @include respond-to(xs) {
+    margin-bottom: $spacing-sm;
+  }
+}
+
+// Responsive button groups
+.button-group {
+  display: flex;
+  gap: $spacing-md;
+  margin: $spacing-md 0;
+  
+  @include respond-to(xs) {
+    flex-direction: column;
+    gap: $spacing-sm;
+    margin: $spacing-sm 0;
+  }
+}
+
+// Theme styles
+body.light-theme {
+  background-color: #fafafa;
+  color: #333;
+  
+  .mat-toolbar {
+    background-color: mat.get-color-from-palette($primary-palette);
+    color: white;
+  }
+  
+  .mat-card {
+    background-color: white;
+    color: #333;
+  }
+  
+  .mat-sidenav-container {
+    background-color: #fafafa;
+  }
+}
+
+body.dark-theme {
+  background-color: #303030;
+  color: #ffffff;
+  
+  .mat-toolbar {
+    background-color: #424242;
+    color: white;
+  }
+  
+  .mat-card {
+    background-color: #424242;
+    color: #ffffff;
+  }
+  
+  .mat-sidenav-container {
+    background-color: #303030;
+  }
+  
+  // Override material design dark theme
+  .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: #424242;
+    --mdc-outlined-text-field-outline-color: #666;
+  }
+  
+  .mat-mdc-select-panel {
+    background-color: #424242 !important;
+  }
+  
+  .mat-mdc-option {
+    color: #ffffff !important;
+  }
+  
+  .mat-mdc-table {
+    background-color: #424242;
+    color: #ffffff;
+  }
+  
+  .mat-mdc-header-row {
+    background-color: #666;
+  }
+  
+  .mat-mdc-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+// System theme - will use browser preference
+@media (prefers-color-scheme: dark) {
+  body:not(.light-theme):not(.dark-theme),
+  body.system-theme {
+    background-color: #303030;
+    color: #ffffff;
+    
+    .mat-toolbar {
+      background-color: #424242;
+      color: white;
+    }
+    
+    .mat-card {
+      background-color: #424242;
+      color: #ffffff;
+    }
+    
+    .mat-sidenav-container {
+      background-color: #303030;
+    }
+    
+    // Override material design dark theme
+    .mat-mdc-form-field {
+      --mdc-filled-text-field-container-color: #424242;
+      --mdc-outlined-text-field-outline-color: #666;
+    }
+    
+    .mat-mdc-select-panel {
+      background-color: #424242 !important;
+    }
+    
+    .mat-mdc-option {
+      color: #ffffff !important;
+    }
+    
+    .mat-mdc-table {
+      background-color: #424242;
+      color: #ffffff;
+    }
+    
+    .mat-mdc-header-row {
+      background-color: #666;
+    }
+    
+    .mat-mdc-row:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  body:not(.light-theme):not(.dark-theme),
+  body.system-theme {
+    background-color: #ffffff;
+    color: #000000;
+    
+    .mat-toolbar {
+      background-color: #f5f5f5;
+      color: #333333;
+    }
+    
+    .mat-card {
+      background-color: #ffffff;
+      color: #000000;
+    }
+    
+    .mat-sidenav-container {
+      background-color: #ffffff;
+    }
+  }
+}

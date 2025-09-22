@@ -1,0 +1,176 @@
+<div class="transactions-container">
+    <!-- Header with title and add button -->
+    <div class="header-section">
+        <h2>Transactions</h2>
+        <button mat-raised-button color="primary" class="add-button" (click)="openTransactionDialog()">
+            <mat-icon>add</mat-icon>
+            <span class="button-text">Add Transaction</span>
+        </button>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="filters-panel">
+        <form [formGroup]="filterForm" class="filters-form">
+            <div class="filter-row">
+                <mat-form-field class="date-range-field">
+                    <mat-label>Date Range</mat-label>
+                    <mat-date-range-input [rangePicker]="picker">
+                        <input matStartDate formControlName="startDate" placeholder="Start date">
+                        <input matEndDate formControlName="endDate" placeholder="End date">
+                    </mat-date-range-input>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-date-range-picker #picker></mat-date-range-picker>
+                </mat-form-field>
+
+                <mat-form-field class="type-field">
+                    <mat-label>Type</mat-label>
+                    <mat-select formControlName="type">
+                        <mat-option value="">All</mat-option>
+                        <mat-option value="income">Income</mat-option>
+                        <mat-option value="expense">Expense</mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <mat-form-field class="category-field">
+                    <mat-label>Category</mat-label>
+                    <mat-select formControlName="categoryId">
+                        <mat-option value="">All</mat-option>
+                        <mat-option *ngFor="let category of categories" [value]="category._id">
+                            {{ category.name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="filter-row">
+                <mat-form-field class="search-field">
+                    <mat-label>Search</mat-label>
+                    <input matInput formControlName="search" placeholder="Search transactions...">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <div class="filter-actions">
+                    <button mat-raised-button color="primary" (click)="applyFilters()" type="button">
+                        <mat-icon>filter_list</mat-icon>
+                        <span class="button-text">Apply</span>
+                    </button>
+
+                    <button mat-button (click)="resetFilters()" type="button">
+                        <mat-icon>clear</mat-icon>
+                        <span class="button-text">Reset</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Transactions Content -->
+    <div class="transactions-content">
+        <!-- Desktop Table View -->
+        <div class="table-container desktop-view">
+            <table mat-table [dataSource]="transactions" matSort class="transactions-table">
+                <ng-container matColumnDef="date">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+                    <td mat-cell *matCellDef="let transaction">
+                        {{ transaction.date | date:'mediumDate' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
+                    <td mat-cell *matCellDef="let transaction">
+                        <span class="type-badge" [ngClass]="transaction.type">
+                            {{ transaction.type | titlecase }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="category">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+                    <td mat-cell *matCellDef="let transaction">
+                        <span class="category-name">{{ getCategoryName(transaction.categoryId) }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="amount">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+                    <td mat-cell *matCellDef="let transaction">
+                        <span class="amount" [ngClass]="transaction.type">
+                            ₹{{ transaction.amount | number:'1.2-2' }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="notes">
+                    <th mat-header-cell *matHeaderCellDef>Notes</th>
+                    <td mat-cell *matCellDef="let transaction">
+                        <span class="notes" [title]="transaction.notes">{{ transaction.notes }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let transaction">
+                        <div class="action-buttons">
+                            <button mat-icon-button (click)="openTransactionDialog(transaction)" 
+                                    matTooltip="Edit">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="deleteTransaction(transaction)"
+                                    matTooltip="Delete">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="transaction-row"></tr>
+            </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-view">
+            <div class="transaction-card" *ngFor="let transaction of transactions" 
+                 [ngClass]="transaction.type">
+                <div class="card-header">
+                    <div class="date-type">
+                        <span class="date">{{ transaction.date | date:'mediumDate' }}</span>
+                        <span class="type-badge" [ngClass]="transaction.type">
+                            {{ transaction.type | titlecase }}
+                        </span>
+                    </div>
+                    <div class="amount" [ngClass]="transaction.type">
+                        ₹{{ transaction.amount | number:'1.2-2' }}
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <div class="category">
+                        <mat-icon>category</mat-icon>
+                        <span>{{ getCategoryName(transaction.categoryId) }}</span>
+                    </div>
+                    <div class="notes" *ngIf="transaction.notes">
+                        <mat-icon>note</mat-icon>
+                        <span>{{ transaction.notes }}</span>
+                    </div>
+                </div>
+                
+                <div class="card-actions">
+                    <button mat-icon-button (click)="openTransactionDialog(transaction)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteTransaction(transaction)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"
+                       [length]="totalTransactions"
+                       class="pagination">
+        </mat-paginator>
+    </div>
+</div>

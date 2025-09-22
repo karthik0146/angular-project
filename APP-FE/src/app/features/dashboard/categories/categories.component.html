@@ -1,0 +1,61 @@
+<div class="categories-container">
+    <div class="header">
+        <h2>Categories</h2>
+        <button mat-raised-button color="primary" (click)="openCategoryDialog()">
+            <mat-icon>add</mat-icon>
+            Add Category
+        </button>
+    </div>
+
+    <div class="category-grid">
+        <div class="category-type">
+            <h3>Income Categories</h3>
+            <div class="categories">
+                <mat-card *ngFor="let category of incomeCategories" class="category-card"
+                    [style.borderColor]="category.color">
+                    <mat-card-content>
+                        <div class="category-icon" [style.backgroundColor]="category.color">
+                            <mat-icon>{{ category.icon }}</mat-icon>
+                        </div>
+                        <div class="category-info">
+                            <h4>{{ category.name }}</h4>
+                            <div class="category-actions" *ngIf="!category.isDefault">
+                                <button mat-icon-button (click)="openCategoryDialog(category)">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button color="warn" (click)="deleteCategory(category)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </div>
+
+        <div class="category-type">
+            <h3>Expense Categories</h3>
+            <div class="categories">
+                <mat-card *ngFor="let category of expenseCategories" class="category-card"
+                    [style.borderColor]="category.color">
+                    <mat-card-content>
+                        <div class="category-icon" [style.backgroundColor]="category.color">
+                            <mat-icon>{{ category.icon }}</mat-icon>
+                        </div>
+                        <div class="category-info">
+                            <h4>{{ category.name }}</h4>
+                            <div class="category-actions" *ngIf="!category.isDefault">
+                                <button mat-icon-button (click)="openCategoryDialog(category)">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button color="warn" (click)="deleteCategory(category)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </div>
+    </div>
+</div>
