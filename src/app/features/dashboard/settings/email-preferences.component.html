@@ -1,0 +1,375 @@
+<div class="email-preferences-container">
+  <div class="header">
+    <h2><mat-icon>email</mat-icon> Email Preferences</h2>
+    <p>Manage your email notification settings and stay informed about your financial activities.</p>
+  </div>
+
+  <div class="preferences-content" *ngIf="!loading; else loadingTemplate">
+    <form [formGroup]="preferencesForm" (ngSubmit)="onSave()">
+      
+      <!-- Transaction Notifications -->
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>receipt</mat-icon>
+            Transaction Notifications
+          </mat-card-title>
+          <mat-card-subtitle>Get notified when you add new transactions</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content formGroupName="transactionNotifications">
+          <div class="form-row">
+            <mat-slide-toggle formControlName="enabled">
+              Enable transaction notifications
+            </mat-slide-toggle>
+          </div>
+          
+          <div class="form-row" *ngIf="preferencesForm.get('transactionNotifications.enabled')?.value">
+            <mat-form-field appearance="outline">
+              <mat-label>Notification frequency</mat-label>
+              <mat-select formControlName="frequency">
+                <mat-option *ngFor="let option of frequencyOptions" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Minimum amount</mat-label>
+              <input matInput type="number" formControlName="minAmount" min="0" step="0.01">
+              <span matPrefix>$</span>
+              <mat-hint>Only notify for transactions above this amount</mat-hint>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row" *ngIf="preferencesForm.get('transactionNotifications.enabled')?.value">
+            <mat-form-field appearance="outline">
+              <mat-label>Specific categories</mat-label>
+              <mat-select formControlName="categories" multiple>
+                <mat-option *ngFor="let category of categories" [value]="category.name">
+                  {{ category.name }}
+                </mat-option>
+              </mat-select>
+              <mat-hint>Leave empty to get notifications for all categories</mat-hint>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Budget Alerts -->
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>warning</mat-icon>
+            Budget Alerts
+          </mat-card-title>
+          <mat-card-subtitle>Get alerts when approaching or exceeding budget limits</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content formGroupName="budgetAlerts">
+          <div class="form-row">
+            <mat-slide-toggle formControlName="enabled">
+              Enable budget alerts
+            </mat-slide-toggle>
+          </div>
+          
+          <div formGroupName="thresholds" *ngIf="preferencesForm.get('budgetAlerts.enabled')?.value">
+            <div class="form-row">
+              <div class="slider-container">
+                <label>Warning threshold: {{ preferencesForm.get('budgetAlerts.thresholds.warning')?.value }}%</label>
+                <mat-slider 
+                  formControlName="warning" 
+                  min="50" 
+                  max="100" 
+                  step="5" 
+                  [color]="getThresholdColor(preferencesForm.get('budgetAlerts.thresholds.warning')?.value)">
+                </mat-slider>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="slider-container">
+                <label>Critical threshold: {{ preferencesForm.get('budgetAlerts.thresholds.critical')?.value }}%</label>
+                <mat-slider 
+                  formControlName="critical" 
+                  min="75" 
+                  max="100" 
+                  step="5" 
+                  [color]="getThresholdColor(preferencesForm.get('budgetAlerts.thresholds.critical')?.value)">
+                </mat-slider>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <mat-slide-toggle formControlName="exceeded">
+                Alert when budget is exceeded
+              </mat-slide-toggle>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Reports -->
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>assessment</mat-icon>
+            Automated Reports
+          </mat-card-title>
+          <mat-card-subtitle>Receive periodic summaries of your financial activity</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content formGroupName="reports">
+          <!-- Weekly Reports -->
+          <div formGroupName="weekly">
+            <h4>Weekly Reports</h4>
+            <div class="form-row">
+              <mat-slide-toggle formControlName="enabled">
+                Enable weekly reports
+              </mat-slide-toggle>
+            </div>
+            
+            <div class="form-row" *ngIf="preferencesForm.get('reports.weekly.enabled')?.value">
+              <mat-form-field appearance="outline">
+                <mat-label>Day of week</mat-label>
+                <mat-select formControlName="dayOfWeek">
+                  <mat-option *ngFor="let day of dayOfWeekOptions" [value]="day.value">
+                    {{ day.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Time</mat-label>
+                <mat-select formControlName="time">
+                  <mat-option *ngFor="let time of timeOptions" [value]="time.value">
+                    {{ time.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <mat-divider></mat-divider>
+          
+          <!-- Monthly Reports -->
+          <div formGroupName="monthly">
+            <h4>Monthly Reports</h4>
+            <div class="form-row">
+              <mat-slide-toggle formControlName="enabled">
+                Enable monthly reports
+              </mat-slide-toggle>
+            </div>
+            
+            <div class="form-row" *ngIf="preferencesForm.get('reports.monthly.enabled')?.value">
+              <mat-form-field appearance="outline">
+                <mat-label>Day of month</mat-label>
+                <mat-select formControlName="dayOfMonth">
+                  <mat-option *ngFor="let day of getDayOfMonthOptions()" [value]="day">
+                    {{ day }}{{ day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th' }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Time</mat-label>
+                <mat-select formControlName="time">
+                  <mat-option *ngFor="let time of timeOptions" [value]="time.value">
+                    {{ time.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Account Emails -->
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>account_circle</mat-icon>
+            Account Emails
+          </mat-card-title>
+          <mat-card-subtitle>Essential emails for account security and functionality</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content formGroupName="accountEmails">
+          <div class="form-row">
+            <mat-slide-toggle formControlName="welcome">
+              Welcome emails for new users
+            </mat-slide-toggle>
+          </div>
+          
+          <div class="form-row">
+            <mat-slide-toggle formControlName="security">
+              Security alerts (login attempts, changes)
+            </mat-slide-toggle>
+          </div>
+          
+          <div class="form-row">
+            <mat-slide-toggle formControlName="passwordReset">
+              Password reset emails
+            </mat-slide-toggle>
+          </div>
+          
+          <div class="form-row">
+            <mat-slide-toggle formControlName="emailVerification">
+              Email verification messages
+            </mat-slide-toggle>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Marketing -->
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>campaign</mat-icon>
+            Marketing & Tips
+          </mat-card-title>
+          <mat-card-subtitle>Educational content and product updates</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content formGroupName="marketing">
+          <div class="form-row">
+            <mat-slide-toggle formControlName="newsletter">
+              Weekly newsletter
+            </mat-slide-toggle>
+          </div>
+          
+          <div class="form-row">
+            <mat-slide-toggle formControlName="financialTips">
+              Financial tips and advice
+            </mat-slide-toggle>
+          </div>
+          
+          <div class="form-row">
+            <mat-slide-toggle formControlName="productUpdates">
+              Product updates and new features
+            </mat-slide-toggle>
+          </div>
+          
+          <div class="form-row">
+            <mat-slide-toggle formControlName="personalizedInsights">
+              Personalized spending insights
+            </mat-slide-toggle>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- General Settings -->
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>settings</mat-icon>
+            General Settings
+          </mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Email format</mat-label>
+              <mat-select formControlName="emailFormat">
+                <mat-option value="html">HTML (Rich formatting)</mat-option>
+                <mat-option value="text">Plain text</mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Timezone</mat-label>
+              <mat-select formControlName="timezone">
+                <mat-option *ngFor="let tz of timezoneOptions" [value]="tz.value">
+                  {{ tz.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Email Statistics -->
+      <mat-card class="preferences-card" *ngIf="emailStats">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>analytics</mat-icon>
+            Email Statistics
+          </mat-card-title>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label">Last email sent:</span>
+              <span class="stat-value">{{ formatLastEmailDate(emailStats.lastEmailSent) }}</span>
+            </div>
+            
+            <div class="stat-item">
+              <span class="stat-label">Failed deliveries:</span>
+              <span class="stat-value" [class.error]="emailStats.failedDeliveries > 0">
+                {{ emailStats.failedDeliveries }}
+              </span>
+            </div>
+            
+            <div class="stat-item" *ngIf="emailStats.isBlacklisted">
+              <span class="stat-label">Status:</span>
+              <span class="stat-value error">Blacklisted</span>
+              <button mat-button color="warn" (click)="onResetBlacklist()">
+                Reset Status
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Test Emails -->
+      <mat-card class="preferences-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>send</mat-icon>
+            Test Emails
+          </mat-card-title>
+          <mat-card-subtitle>Send test emails to verify your preferences</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="test-buttons">
+            <button 
+              *ngFor="let emailType of testEmailTypes" 
+              mat-raised-button 
+              color="accent"
+              (click)="onTestEmail(emailType.value)"
+              [disabled]="testingEmail === emailType.value">
+              
+              <mat-spinner *ngIf="testingEmail === emailType.value" diameter="20"></mat-spinner>
+              <span *ngIf="testingEmail !== emailType.value">{{ emailType.label }}</span>
+              <span *ngIf="testingEmail === emailType.value">Sending...</span>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Save Button -->
+      <div class="form-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          type="submit" 
+          [disabled]="saving || preferencesForm.invalid">
+          
+          <mat-spinner *ngIf="saving" diameter="20"></mat-spinner>
+          <span *ngIf="!saving">Save Preferences</span>
+          <span *ngIf="saving">Saving...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading email preferences...</p>
+    </div>
+  </ng-template>
+</div>

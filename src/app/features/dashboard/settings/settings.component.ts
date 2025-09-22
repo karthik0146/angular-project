@@ -6,9 +6,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { SettingsService, UserSettings } from '../../../core/services/settings.service';
+import { EmailPreferencesComponent } from './email-preferences.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -24,7 +27,10 @@ import { takeUntil } from 'rxjs/operators';
         MatButtonModule,
         MatCardModule,
         MatSelectModule,
-        MatSnackBarModule
+        MatTabsModule,
+        MatIconModule,
+        MatSnackBarModule,
+        EmailPreferencesComponent
     ],
     templateUrl: './settings.component.html',
     styleUrls: ['./settings.component.scss']
