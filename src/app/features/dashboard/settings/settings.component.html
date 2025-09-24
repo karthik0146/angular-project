@@ -1,0 +1,172 @@
+<div class="settings-container">
+    <div class="settings-header">
+        <h1>Settings</h1>
+        <p>Manage your account preferences and configurations</p>
+    </div>
+
+    <mat-tab-group animationDuration="300ms" class="settings-tabs">
+        <!-- General Settings Tab -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon>settings</mat-icon>
+                General
+            </ng-template>
+            
+            <div class="tab-content">
+                <mat-card>
+                    <mat-card-header>
+                        <mat-card-title>
+                            <mat-icon>person</mat-icon>
+                            Profile Settings
+                        </mat-card-title>
+                        <mat-card-subtitle>Update your personal information and preferences</mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+                            <div class="form-row">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Display Name</mat-label>
+                                    <input matInput 
+                                           type="text" 
+                                           formControlName="displayName" 
+                                           placeholder="Enter your display name">
+                                    <mat-icon matPrefix>person</mat-icon>
+                                </mat-form-field>
+                            </div>
+
+                            <div class="form-row">
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Currency</mat-label>
+                                    <mat-select formControlName="currency">
+                                        <mat-option *ngFor="let currency of currencies" 
+                                                  [value]="currency.code">
+                                            {{currency.code}} ({{currency.symbol}}) - {{currency.name}}
+                                        </mat-option>
+                                    </mat-select>
+                                    <mat-icon matPrefix>attach_money</mat-icon>
+                                </mat-form-field>
+
+                                <mat-form-field appearance="outline">
+                                    <mat-label>Theme</mat-label>
+                                    <mat-select formControlName="theme">
+                                        <mat-option *ngFor="let theme of themes" 
+                                                  [value]="theme.value">
+                                            {{theme.label}}
+                                        </mat-option>
+                                    </mat-select>
+                                    <mat-icon matPrefix>palette</mat-icon>
+                                </mat-form-field>
+                            </div>
+
+                            <div class="actions">
+                                <button mat-button type="button" 
+                                        (click)="settingsForm.reset()">
+                                    Reset
+                                </button>
+                                <button mat-raised-button 
+                                        color="primary" 
+                                        type="submit" 
+                                        [disabled]="!settingsForm.valid || settingsForm.pristine">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </mat-tab>
+
+        <!-- Email Settings Tab -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon>email</mat-icon>
+                Email
+            </ng-template>
+            
+            <div class="tab-content">
+                <app-email-preferences></app-email-preferences>
+            </div>
+        </mat-tab>
+
+        <!-- Security Tab -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon>security</mat-icon>
+                Security
+            </ng-template>
+            
+            <div class="tab-content">
+                <mat-card>
+                    <mat-card-header>
+                        <mat-card-title>
+                            <mat-icon>lock</mat-icon>
+                            Password & Security
+                        </mat-card-title>
+                        <mat-card-subtitle>Manage your account security settings</mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="security-section">
+                            <h4>Change Password</h4>
+                            <button mat-raised-button color="accent">
+                                Update Password
+                            </button>
+                        </div>
+                        
+                        <div class="security-section">
+                            <h4>Two-Factor Authentication</h4>
+                            <p>Add an extra layer of security to your account</p>
+                            <button mat-raised-button color="primary">
+                                Enable 2FA
+                            </button>
+                        </div>
+                        
+                        <div class="security-section">
+                            <h4>Login Sessions</h4>
+                            <p>View and manage your active sessions</p>
+                            <button mat-button color="warn">
+                                View Sessions
+                            </button>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </mat-tab>
+
+        <!-- Data & Privacy Tab -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <mat-icon>privacy_tip</mat-icon>
+                Privacy
+            </ng-template>
+            
+            <div class="tab-content">
+                <mat-card>
+                    <mat-card-header>
+                        <mat-card-title>
+                            <mat-icon>storage</mat-icon>
+                            Data Management
+                        </mat-card-title>
+                        <mat-card-subtitle>Control your data and privacy settings</mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="privacy-section">
+                            <h4>Data Export</h4>
+                            <p>Download a copy of your data</p>
+                            <button mat-raised-button color="primary">
+                                Export Data
+                            </button>
+                        </div>
+                        
+                        <div class="privacy-section">
+                            <h4>Account Deletion</h4>
+                            <p>Permanently delete your account and all data</p>
+                            <button mat-button color="warn">
+                                Delete Account
+                            </button>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</div>

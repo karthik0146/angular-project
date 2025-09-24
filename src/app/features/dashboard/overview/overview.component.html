@@ -1,0 +1,105 @@
+<div class="overview-container">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading statistics...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-container">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="loadStats()">Retry</button>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!loading && !error">
+        <div class="summary-cards">
+            <mat-card class="summary-card income">
+                <mat-card-content>
+                    <div class="card-content">
+                        <div class="icon-container">
+                            <mat-icon>arrow_upward</mat-icon>
+                        </div>
+                        <div class="info">
+                            <h3>Income</h3>
+                            <p class="amount">₹{{ stats?.summary?.income?.toLocaleString() || '0' }}</p>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="summary-card expense">
+                <mat-card-content>
+                    <div class="card-content">
+                        <div class="icon-container">
+                            <mat-icon>arrow_downward</mat-icon>
+                        </div>
+                        <div class="info">
+                            <h3>Expense</h3>
+                            <p class="amount">₹{{ stats?.summary?.expense?.toLocaleString() || '0' }}</p>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="summary-card balance">
+                <mat-card-content>
+                    <div class="card-content">
+                        <div class="icon-container">
+                            <mat-icon>account_balance_wallet</mat-icon>
+                        </div>
+                        <div class="info">
+                            <h3>Balance</h3>
+                            <p class="amount" [class.negative]="(stats?.summary?.balance || 0) < 0">
+                                ₹{{ stats?.summary?.balance?.toLocaleString() || '0' }}
+                            </p>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <div class="charts-container">
+            <mat-card class="chart-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>pie_chart</mat-icon>
+                        Expense by Category
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="chart-container" *ngIf="stats && hasExpenseData(); else noExpenseData">
+                        <canvas #expenseChart></canvas>
+                    </div>
+                    <ng-template #noExpenseData>
+                        <div class="no-data">
+                            <mat-icon>pie_chart_outline</mat-icon>
+                            <p>No expense data available</p>
+                        </div>
+                    </ng-template>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="chart-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>pie_chart</mat-icon>
+                        Income by Category
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="chart-container" *ngIf="stats && hasIncomeData(); else noIncomeData">
+                        <canvas #incomeChart></canvas>
+                    </div>
+                    <ng-template #noIncomeData>
+                        <div class="no-data">
+                            <mat-icon>pie_chart_outline</mat-icon>
+                            <p>No income data available</p>
+                        </div>
+                    </ng-template>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

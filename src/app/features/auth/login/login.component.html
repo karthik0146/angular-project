@@ -1,0 +1,93 @@
+<div class="login-container">
+    <div class="background-overlay"></div>
+    <div class="login-content">
+        <div class="brand-section">
+            <div class="logo">
+                <span class="app-icon">💰</span>
+                <h1>EXTrace</h1>
+            </div>
+            <p class="tagline">Track your expenses effortlessly</p>
+        </div>
+
+        <div class="login-card">
+            <div class="card-header">
+                <h2>Welcome back</h2>
+                <p>Sign in to your account</p>
+            </div>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+                <div class="form-group">
+                    <div class="input-container">
+                        <span class="input-icon">📧</span>
+                        <input 
+                            type="email" 
+                            formControlName="email" 
+                            placeholder="Email address"
+                            class="custom-input"
+                            [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                        >
+                    </div>
+                    <div class="error-message" *ngIf="loginForm.get('email')?.errors?.['required'] && loginForm.get('email')?.touched">
+                        Email is required
+                    </div>
+                    <div class="error-message" *ngIf="loginForm.get('email')?.errors?.['email'] && loginForm.get('email')?.touched">
+                        Please enter a valid email address
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-container">
+                        <span class="input-icon">🔒</span>
+                        <input 
+                            [type]="hidePassword ? 'password' : 'text'" 
+                            formControlName="password" 
+                            placeholder="Password"
+                            class="custom-input"
+                            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                        >
+                        <button 
+                            type="button" 
+                            class="password-toggle" 
+                            (click)="hidePassword = !hidePassword"
+                        >
+                            <span>{{hidePassword ? '👁️' : '🙈'}}</span>
+                        </button>
+                    </div>
+                    <div class="error-message" *ngIf="loginForm.get('password')?.errors?.['required'] && loginForm.get('password')?.touched">
+                        Password is required
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" formControlName="rememberMe">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" [disabled]="loginForm.invalid || isLoading" class="login-btn">
+                    <span *ngIf="isLoading" class="spinner">⏳</span>
+                    <span *ngIf="!isLoading">Sign In</span>
+                    <span *ngIf="isLoading">Signing in...</span>
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>or continue with</span>
+            </div>
+
+            <div class="social-login">
+                <button class="google-btn" (click)="loginWithGoogle()" [disabled]="isLoading">
+                    <img src="assets/google-logo.svg" alt="Google" class="google-icon">
+                    <span>Google</span>
+                </button>
+            </div>
+
+            <div class="signup-prompt">
+                <p>Don't have an account? <a (click)="goToRegister()" class="signup-link">Create one</a></p>
+            </div>
+        </div>
+    </div>
+</div>

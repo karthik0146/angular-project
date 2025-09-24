@@ -1,0 +1,149 @@
+<div class="register-container">
+    <div class="background-overlay"></div>
+    <div class="register-content">
+        <div class="brand-section">
+            <div class="logo">
+                <span class="app-icon">💰</span>
+                <h1>EXTrace</h1>
+            </div>
+            <p class="tagline">Start tracking your expenses today</p>
+        </div>
+
+        <div class="register-card">
+            <div class="card-header">
+                <h2>Create Account</h2>
+                <p>Join thousands of users managing their finances</p>
+            </div>
+
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+                <div class="form-group">
+                    <div class="input-container" [class.error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+                        <span class="input-icon">👤</span>
+                        <input 
+                            type="text" 
+                            formControlName="name" 
+                            placeholder="Enter your full name"
+                            class="custom-input"
+                        >
+                    </div>
+                    <div *ngIf="registerForm.get('name')?.errors?.['required'] && registerForm.get('name')?.touched" class="error-message">
+                        Full name is required
+                    </div>
+                    <div *ngIf="registerForm.get('name')?.errors?.['minlength'] && registerForm.get('name')?.touched" class="error-message">
+                        Name must be at least 2 characters
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-container" [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                        <span class="input-icon">✉️</span>
+                        <input 
+                            type="email" 
+                            formControlName="email" 
+                            placeholder="Enter your email address"
+                            class="custom-input"
+                        >
+                    </div>
+                    <div *ngIf="registerForm.get('email')?.errors?.['required'] && registerForm.get('email')?.touched" class="error-message">
+                        Email is required
+                    </div>
+                    <div *ngIf="registerForm.get('email')?.errors?.['email'] && registerForm.get('email')?.touched" class="error-message">
+                        Please enter a valid email address
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-container" [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                        <span class="input-icon">🔒</span>
+                        <input 
+                            [type]="hidePassword ? 'password' : 'text'" 
+                            formControlName="password" 
+                            placeholder="Create a strong password"
+                            class="custom-input"
+                        >
+                        <button 
+                            type="button" 
+                            class="password-toggle" 
+                            (click)="hidePassword = !hidePassword"
+                            [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
+                        >
+                            <span>{{hidePassword ? '👁️' : '🙈'}}</span>
+                        </button>
+                    </div>
+                    <div *ngIf="registerForm.get('password')?.errors?.['required'] && registerForm.get('password')?.touched" class="error-message">
+                        Password is required
+                    </div>
+                    <div *ngIf="registerForm.get('password')?.errors?.['minlength'] && registerForm.get('password')?.touched" class="error-message">
+                        Password must be at least 6 characters
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-container" [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+                        <span class="input-icon">🔐</span>
+                        <input 
+                            [type]="hideConfirmPassword ? 'password' : 'text'" 
+                            formControlName="confirmPassword" 
+                            placeholder="Confirm your password"
+                            class="custom-input"
+                        >
+                        <button 
+                            type="button" 
+                            class="password-toggle" 
+                            (click)="hideConfirmPassword = !hideConfirmPassword"
+                            [attr.aria-label]="hideConfirmPassword ? 'Show password' : 'Hide password'"
+                        >
+                            <span>{{hideConfirmPassword ? '👁️' : '🙈'}}</span>
+                        </button>
+                    </div>
+                    <div *ngIf="registerForm.get('confirmPassword')?.errors?.['required'] && registerForm.get('confirmPassword')?.touched" class="error-message">
+                        Please confirm your password
+                    </div>
+                    <div *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched" class="error-message">
+                        Passwords do not match
+                    </div>
+                </div>
+
+                <div class="terms-section">
+                    <label class="terms-checkbox">
+                        <div class="custom-checkbox">
+                            <input type="checkbox" formControlName="acceptTerms">
+                            <span class="checkmark"></span>
+                        </div>
+                        I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a>
+                    </label>
+                    <div *ngIf="registerForm.get('acceptTerms')?.errors?.['required'] && registerForm.get('acceptTerms')?.touched" class="error-message">
+                        You must accept the terms to continue
+                    </div>
+                </div>
+
+                <button 
+                    type="submit" 
+                    [disabled]="registerForm.invalid || isLoading" 
+                    class="register-btn"
+                >
+                    <span *ngIf="!isLoading">Create Account</span>
+                    <span *ngIf="isLoading" class="loading-text">
+                        <span class="spinner-icon">⏳</span>
+                        Creating account...
+                    </span>
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>or sign up with</span>
+            </div>
+
+            <div class="social-login">
+                <button class="google-btn" (click)="registerWithGoogle()" [disabled]="isLoading">
+                    <img src="assets/google-logo.svg" alt="Google" class="google-icon">
+                    <span>Sign up with Google</span>
+                </button>
+            </div>
+
+            <div class="login-prompt">
+                <p>Already have an account? <a (click)="goToLogin()" class="login-link">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+</div>

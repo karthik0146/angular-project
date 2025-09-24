@@ -1,0 +1,430 @@
+@import '../../../../styles/variables';
+
+// Main Container
+.transactions-container {
+    padding: $spacing-lg;
+    max-width: 100%;
+    margin: 0 auto;
+    
+    @include respond-to(xs) {
+        padding: $spacing-md $spacing-sm;
+    }
+}
+
+// Header Section
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-lg;
+    
+    h2 {
+        margin: 0;
+        color: #333;
+        font-size: 1.75rem;
+        font-weight: 500;
+        
+        @include respond-to(xs) {
+            font-size: 1.5rem;
+        }
+    }
+    
+    .add-button {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        
+        .button-text {
+            @include respond-to(xs) {
+                display: none;
+            }
+        }
+        
+        @include respond-to(xs) {
+            min-width: 48px;
+            padding: 0 $spacing-sm;
+        }
+    }
+}
+
+// Filters Panel
+.filters-panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: $spacing-lg;
+    margin-bottom: $spacing-lg;
+    
+    @include respond-to(xs) {
+        padding: $spacing-md;
+        margin-bottom: $spacing-md;
+    }
+}
+
+.filters-form {
+    width: 100%;
+    
+    .filter-row {
+        display: flex;
+        gap: $spacing-md;
+        align-items: flex-end;
+        margin-bottom: $spacing-md;
+        flex-wrap: wrap;
+        
+        &:last-child {
+            margin-bottom: 0;
+        }
+        
+        @include respond-to(xs) {
+            flex-direction: column;
+            gap: $spacing-sm;
+            align-items: stretch;
+        }
+        
+        // Form fields responsive behavior
+        .mat-mdc-form-field {
+            flex: 1;
+            min-width: 200px;
+            
+            @include respond-to(md) {
+                min-width: 150px;
+            }
+            
+            @include respond-to(xs) {
+                min-width: 100%;
+                width: 100%;
+            }
+            
+            &.date-range-field {
+                flex: 2;
+                min-width: 300px;
+                
+                @include respond-to(xs) {
+                    min-width: 100%;
+                }
+            }
+            
+            &.search-field {
+                flex: 2;
+                min-width: 250px;
+                
+                @include respond-to(xs) {
+                    min-width: 100%;
+                }
+            }
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: $spacing-sm;
+            flex-shrink: 0;
+            
+            @include respond-to(xs) {
+                width: 100%;
+                justify-content: space-between;
+                
+                button {
+                    flex: 1;
+                }
+            }
+            
+            .button-text {
+                margin-left: $spacing-xs;
+                
+                @include respond-to(sm) {
+                    display: none;
+                }
+            }
+        }
+    }
+}
+
+// Transactions Content
+.transactions-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+// Desktop Table View
+.desktop-view {
+    display: block;
+    
+    @include respond-to(xs) {
+        display: none;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        
+        &::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+    }
+    
+    .transactions-table {
+        width: 100%;
+        min-width: 800px;
+        
+        th, td {
+            padding: $spacing-md;
+            
+            @include respond-to(md) {
+                padding: $spacing-sm;
+            }
+        }
+        
+        th {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.875rem;
+        }
+        
+        .transaction-row {
+            transition: background-color 0.2s ease;
+            
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.02);
+            }
+        }
+        
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: $spacing-xs $spacing-sm;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            
+            &.income {
+                background-color: rgba(76, 175, 80, 0.1);
+                color: #388e3c;
+            }
+            
+            &.expense {
+                background-color: rgba(244, 67, 54, 0.1);
+                color: #d32f2f;
+            }
+        }
+        
+        .amount {
+            font-weight: 600;
+            font-size: 0.95rem;
+            
+            &.income {
+                color: #388e3c;
+            }
+            
+            &.expense {
+                color: #d32f2f;
+            }
+        }
+        
+        .notes {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .category-name {
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: $spacing-xs;
+            justify-content: flex-end;
+        }
+    }
+}
+
+// Mobile Card View
+.mobile-view {
+    display: none;
+    
+    @include respond-to(xs) {
+        display: block;
+    }
+    
+    .transaction-card {
+        padding: $spacing-md;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        transition: background-color 0.2s ease;
+        
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        &:last-child {
+            border-bottom: none;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: $spacing-sm;
+            
+            .date-type {
+                display: flex;
+                flex-direction: column;
+                gap: $spacing-xs;
+                
+                .date {
+                    font-size: 0.875rem;
+                    color: #666;
+                }
+                
+                .type-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: $spacing-xs $spacing-sm;
+                    border-radius: 12px;
+                    font-size: 0.7rem;
+                    font-weight: 500;
+                    text-transform: uppercase;
+                    align-self: flex-start;
+                    
+                    &.income {
+                        background-color: rgba(76, 175, 80, 0.1);
+                        color: #388e3c;
+                    }
+                    
+                    &.expense {
+                        background-color: rgba(244, 67, 54, 0.1);
+                        color: #d32f2f;
+                    }
+                }
+            }
+            
+            .amount {
+                font-weight: 700;
+                font-size: 1.1rem;
+                
+                &.income {
+                    color: #388e3c;
+                }
+                
+                &.expense {
+                    color: #d32f2f;
+                }
+            }
+        }
+        
+        .card-content {
+            margin-bottom: $spacing-sm;
+            
+            .category, .notes {
+                display: flex;
+                align-items: center;
+                gap: $spacing-xs;
+                margin-bottom: $spacing-xs;
+                font-size: 0.875rem;
+                
+                mat-icon {
+                    font-size: 18px;
+                    width: 18px;
+                    height: 18px;
+                    color: #666;
+                }
+                
+                span {
+                    flex: 1;
+                }
+            }
+            
+            .category span {
+                font-weight: 500;
+            }
+            
+            .notes span {
+                color: #666;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+        
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: $spacing-xs;
+            padding-top: $spacing-xs;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+    }
+}
+
+// Pagination
+.pagination {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    
+    @include respond-to(xs) {
+        .mat-mdc-paginator-range-label {
+            margin: 0 $spacing-sm;
+        }
+    }
+}
+
+// Global responsive utilities
+@include respond-to(xs) {
+    .mat-mdc-form-field {
+        .mat-mdc-form-field-subscript-wrapper {
+            padding: 0 $spacing-sm;
+        }
+    }
+    
+    .mat-mdc-button {
+        min-width: 48px;
+        height: 48px;
+    }
+    
+    .mat-mdc-icon-button {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+// Additional responsive breakpoints for better tablet support
+@include respond-to(sm) {
+    .filters-form {
+        .filter-row {
+            .mat-mdc-form-field {
+                min-width: 180px;
+                
+                &.date-range-field {
+                    min-width: 280px;
+                }
+            }
+        }
+    }
+    
+    .desktop-view .transactions-table {
+        min-width: 700px;
+        
+        th, td {
+            padding: $spacing-sm;
+        }
+    }
+}
+
+@include respond-to(md) {
+    .filters-form {
+        .filter-row {
+            gap: $spacing-sm;
+            
+            .mat-mdc-form-field {
+                min-width: 150px;
+            }
+        }
+    }
+}

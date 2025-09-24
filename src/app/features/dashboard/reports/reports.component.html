@@ -1,0 +1,143 @@
+<div class="reports-container">
+    <!-- Filter Form -->
+    <mat-card class="filters-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>filter_list</mat-icon>
+                Report Filters
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <form [formGroup]="filterForm" class="filters-form">
+                <div class="filter-row">
+                    <mat-form-field class="filter-field">
+                        <mat-label>Report Type</mat-label>
+                        <mat-select formControlName="reportType">
+                            <mat-option value="monthly">Monthly</mat-option>
+                            <mat-option value="yearly">Yearly</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <ng-container *ngIf="filterForm.get('reportType')?.value === 'monthly'">
+                        <mat-form-field class="filter-field">
+                            <mat-label>Month & Year</mat-label>
+                            <input matInput [matDatepicker]="monthPicker" formControlName="date">
+                            <mat-datepicker-toggle matIconSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                            <mat-datepicker #monthPicker
+                                startView="multi-year"
+                                (yearSelected)="chosenYearHandler($event)"
+                                (monthSelected)="chosenMonthHandler($event, monthPicker)">
+                            </mat-datepicker>
+                        </mat-form-field>
+                    </ng-container>
+
+                    <ng-container *ngIf="filterForm.get('reportType')?.value === 'yearly'">
+                        <mat-form-field class="filter-field">
+                            <mat-label>Year</mat-label>
+                            <input matInput [matDatepicker]="yearPicker" formControlName="date">
+                            <mat-datepicker-toggle matIconSuffix [for]="yearPicker"></mat-datepicker-toggle>
+                            <mat-datepicker #yearPicker
+                                startView="multi-year"
+                                (yearSelected)="chosenYearHandler($event, yearPicker)">
+                            </mat-datepicker>
+                        </mat-form-field>
+                    </ng-container>
+                </div>
+
+                <div class="filter-actions">
+                    <button mat-raised-button color="primary" (click)="generateReport()" class="generate-btn">
+                        <mat-icon>assessment</mat-icon>
+                        Generate Report
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid" *ngIf="!loading && !error && hasData">
+        <!-- Temporary debug info - remove this after testing -->
+        <!-- <div style="padding: 10px; background: #e8f5e8; margin-bottom: 10px; font-size: 12px; border-left: 4px solid #4caf50;">
+            ✅ Charts Ready: loading={{ loading }}, error={{ error }}, hasData={{ hasData }}
+        </div> -->
+        
+        <mat-card class="chart-card income-expense-chart">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>bar_chart</mat-icon>
+                    Income vs Expense
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="chart-container">
+                    <canvas #barChart></canvas>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="chart-card income-breakdown">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>pie_chart</mat-icon>
+                    Income by Category
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="chart-container">
+                    <canvas #incomeChart></canvas>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="chart-card expense-breakdown">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>pie_chart</mat-icon>
+                    Expense by Category
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="chart-container">
+                    <canvas #expenseChart></canvas>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="chart-card balance-trend">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>trending_up</mat-icon>
+                    Balance Trend
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="chart-container">
+                    <canvas #lineChart></canvas>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Generating reports...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-container">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="generateReport()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+        </button>
+    </div>
+
+    <!-- No Data State -->
+    <div *ngIf="!loading && !error && !hasData" class="no-data-container">
+        <mat-icon>assessment</mat-icon>
+        <p>No data available for the selected period</p>
+        <p class="subtitle">Try selecting a different date range or add some transactions</p>
+    </div>
+</div>

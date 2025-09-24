@@ -1,0 +1,449 @@
+<div class="ai-insights-container">
+    <!-- Enhanced Header Section -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="title-section">
+                <div class="ai-icon">
+                    <div class="icon-wrapper">
+                        <mat-icon class="ai-brain">psychology</mat-icon>
+                        <div class="icon-pulse"></div>
+                    </div>
+                </div>
+                <div class="title-text">
+                    <h1>AI Financial Insights</h1>
+                    <p class="subtitle">Powered by advanced machine learning</p>
+                    <div class="status-badges">
+                        <span class="status-badge active">
+                            <mat-icon>check_circle</mat-icon>
+                            AI Active
+                        </span>
+                        <span class="status-badge confidence">
+                            <mat-icon>security</mat-icon>
+                            95% Confidence
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button mat-stroked-button 
+                        class="insights-count-btn"
+                        *ngIf="insights.length">
+                    <mat-icon>insights</mat-icon>
+                    {{ insights.length }} Insights
+                </button>
+                <button mat-fab 
+                        color="primary" 
+                        (click)="loadAIData()" 
+                        [disabled]="loading"
+                        class="refresh-btn"
+                        matTooltip="Refresh AI Insights">
+                    <mat-icon [class.spinning]="loading">{{ loading ? 'hourglass_empty' : 'refresh' }}</mat-icon>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Enhanced Loading State -->
+        <div *ngIf="loading" class="loading-section">
+            <div class="loading-animation">
+                <div class="brain-loader">
+                    <mat-icon>psychology</mat-icon>
+                    <div class="neural-network">
+                        <div class="node"></div>
+                        <div class="node"></div>
+                        <div class="node"></div>
+                        <div class="connection"></div>
+                        <div class="connection"></div>
+                    </div>
+                </div>
+                <div class="loading-progress">
+                    <mat-progress-bar mode="indeterminate" class="loading-bar"></mat-progress-bar>
+                    <div class="loading-steps">
+                        <span class="step active">Analyzing data...</span>
+                        <span class="step">Generating insights...</span>
+                        <span class="step">Finalizing recommendations...</span>
+                    </div>
+                </div>
+                <p class="loading-text">AI is processing your financial data</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid" *ngIf="!loading">
+        <!-- Enhanced Financial Health Score -->
+        <mat-card *ngIf="financialHealthScore" class="health-score-card modern-card featured-card">
+            <div class="card-header">
+                <div class="header-icon health-icon">
+                    <mat-icon>favorite</mat-icon>
+                </div>
+                <div class="header-text">
+                    <h3>Financial Health Score</h3>
+                    <p>AI-powered health assessment</p>
+                </div>
+                <div class="card-actions">
+                    <button mat-icon-button matTooltip="View Details">
+                        <mat-icon>info</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <mat-card-content>
+                <div class="score-display">
+                    <div class="score-visualization">
+                        <div class="score-circle" [style.--score]="financialHealthScore.score">
+                            <div class="score-inner">
+                                <span class="score-number">{{ financialHealthScore.score }}</span>
+                                <span class="score-total">/100</span>
+                            </div>
+                            <div class="pulse-ring"></div>
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="40" class="progress-bg"/>
+                                    <circle cx="50" cy="50" r="40" class="progress-fill" 
+                                            [style.stroke-dasharray]="251.2 * financialHealthScore.score / 100 + ' 251.2'"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="score-status" [ngClass]="getHealthScoreClass(financialHealthScore.score)">
+                            <mat-icon>{{ getHealthScoreIcon(financialHealthScore.score) }}</mat-icon>
+                            {{ getHealthScoreLabel(financialHealthScore.score) }}
+                        </div>
+                    </div>
+                    
+                    <div class="factors-section">
+                        <div class="section-header">
+                            <h4>Key Factors</h4>
+                            <mat-chip-listbox class="factor-filters">
+                                <mat-chip-option>All</mat-chip-option>
+                                <mat-chip-option>Positive</mat-chip-option>
+                                <mat-chip-option>Needs Attention</mat-chip-option>
+                            </mat-chip-listbox>
+                        </div>
+                        <div class="factors-grid">
+                            <div *ngFor="let factor of financialHealthScore.factors; let i = index" 
+                                 class="factor-item" 
+                                 [ngClass]="factor.impact"
+                                 [style.animation-delay.ms]="i * 100">
+                                <div class="factor-icon">
+                                    <mat-icon>{{ getFactorIcon(factor.impact) }}</mat-icon>
+                                </div>
+                                <div class="factor-content">
+                                    <div class="factor-header">
+                                        <span class="factor-name">{{ factor.name }}</span>
+                                        <span class="factor-impact" [ngClass]="factor.impact">
+                                            {{ factor.impact | titlecase }}
+                                        </span>
+                                    </div>
+                                    <span class="factor-desc">{{ factor.description }}</span>
+                                    <div class="factor-progress">
+                                        <div class="progress-bar" 
+                                             [style.width.%]="getFactorProgress(factor)"
+                                             [ngClass]="factor.impact">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="improvements-section" *ngIf="financialHealthScore.improvements.length">
+                    <div class="section-header">
+                        <h4>🚀 Improvement Suggestions</h4>
+                        <span class="suggestions-count">{{ financialHealthScore.improvements.length }} suggestions</span>
+                    </div>
+                    <div class="improvements-grid">
+                        <div *ngFor="let improvement of financialHealthScore.improvements; let i = index" 
+                             class="improvement-card"
+                             [style.animation-delay.ms]="i * 150">
+                            <div class="improvement-icon">
+                                <mat-icon>{{ getImprovementIcon(i) }}</mat-icon>
+                            </div>
+                            <div class="improvement-content">
+                                <span class="improvement-text">{{ improvement }}</span>
+                                <div class="improvement-actions">
+                                    <button mat-button class="action-btn">
+                                        <mat-icon>arrow_forward</mat-icon>
+                                        Learn More
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Budget Prediction -->
+        <mat-card *ngIf="budgetPrediction" class="budget-prediction-card modern-card">
+            <div class="card-header">
+                <div class="header-icon prediction-icon">
+                    <mat-icon>trending_up</mat-icon>
+                </div>
+                <div class="header-text">
+                    <h3>Budget Prediction</h3>
+                    <p>AI Confidence: <span class="confidence-badge">{{ budgetPrediction.confidence }}%</span></p>
+                </div>
+            </div>
+            <mat-card-content>
+                <div class="prediction-showcase">
+                    <div class="prediction-amount">
+                        <span class="currency">$</span>
+                        <span class="amount">{{ budgetPrediction.nextMonthPrediction | number:'1.0-0' }}</span>
+                        <span class="period">Next Month</span>
+                    </div>
+                    <div class="prediction-trend">
+                        <mat-icon class="trend-icon">{{ getTrendIcon(budgetPrediction.trend || 'stable') }}</mat-icon>
+                        <span class="trend-text">{{ getTrendText(budgetPrediction.trend || 'stable') }}</span>
+                    </div>
+                </div>
+                
+                <div class="category-breakdown" *ngIf="budgetPrediction.categoryBreakdown.length">
+                    <h4>📊 Category Breakdown</h4>
+                    <div class="breakdown-chart">
+                        <div *ngFor="let item of budgetPrediction.categoryBreakdown" class="category-prediction">
+                            <div class="category-info">
+                                <span class="category-name">{{ item.category }}</span>
+                                <span class="category-amount">${{ item.predicted | number:'1.0-0' }}</span>
+                            </div>
+                            <div class="category-bar">
+                                <div class="bar-fill" [style.width.%]="getPercentage(item.predicted, budgetPrediction.nextMonthPrediction)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Spending Analysis -->
+        <mat-card *ngIf="spendingAnalysis" class="spending-analysis-card modern-card">
+            <div class="card-header">
+                <div class="header-icon analysis-icon">
+                    <mat-icon>analytics</mat-icon>
+                </div>
+                <div class="header-text">
+                    <h3>Spending Analysis</h3>
+                    <p>Trend: <span class="trend-badge" [ngClass]="spendingAnalysis.monthlyTrend">{{ spendingAnalysis.monthlyTrend | titlecase }}</span></p>
+                </div>
+            </div>
+            <mat-card-content>
+                <div class="spending-overview">
+                    <div class="top-categories">
+                        <h4>🏆 Top Spending Categories</h4>
+                        <div class="categories-visual">
+                            <div *ngFor="let category of spendingAnalysis.topCategories; let i = index" 
+                                 class="category-item" 
+                                 [style.animation-delay.ms]="i * 100">
+                                <div class="category-rank">{{ i + 1 }}</div>
+                                <div class="category-details">
+                                    <span class="category-label">{{ category.category }}</span>
+                                    <div class="category-stats">
+                                        <span class="percentage">{{ category.percentage }}%</span>
+                                        <div class="visual-bar">
+                                            <div class="bar-progress" [style.width.%]="category.percentage"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-recommendations" *ngIf="spendingAnalysis.recommendations.length">
+                        <h4>🤖 AI Recommendations</h4>
+                        <div class="recommendations-list">
+                            <div *ngFor="let recommendation of spendingAnalysis.recommendations; let i = index" 
+                                 class="recommendation-item"
+                                 [style.animation-delay.ms]="i * 150">
+                                <div class="recommendation-icon">
+                                    <mat-icon>{{ getRecommendationIcon(i) }}</mat-icon>
+                                </div>
+                                <span class="recommendation-text">{{ recommendation }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- AI Insights -->
+        <mat-card *ngIf="insights.length" class="insights-card modern-card full-width">
+            <div class="card-header">
+                <div class="header-icon insights-icon">
+                    <mat-icon>lightbulb</mat-icon>
+                </div>
+                <div class="header-text">
+                    <h3>AI-Generated Insights</h3>
+                    <p>{{ insights.length }} insights discovered</p>
+                </div>
+            </div>
+            <mat-card-content>
+                <div class="insights-masonry">
+                    <div *ngFor="let insight of insights; let i = index" 
+                         class="insight-card" 
+                         [ngClass]="insight.type"
+                         [style.animation-delay.ms]="i * 100">
+                        <div class="insight-header">
+                            <div class="insight-type-icon">
+                                <mat-icon>{{ getInsightIcon(insight.type) }}</mat-icon>
+                            </div>
+                            <div class="insight-info">
+                                <h5>{{ insight.title }}</h5>
+                                <div class="confidence-meter">
+                                    <span class="confidence-label">Confidence</span>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" [style.width.%]="insight.confidence"></div>
+                                    </div>
+                                    <span class="confidence-value">{{ insight.confidence }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="insight-description">{{ insight.description }}</p>
+                        <div class="insight-actions" *ngIf="insight.actionable">
+                            <button mat-stroked-button 
+                                    color="primary" 
+                                    (click)="onInsightAction(insight)"
+                                    class="action-btn">
+                                <mat-icon>{{ getActionIcon(insight.action) }}</mat-icon>
+                                {{ insight.action }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- AI Chat Assistant -->
+        <mat-card class="chat-card modern-card full-width">
+            <div class="card-header chat-header">
+                <div class="assistant-avatar">
+                    <div class="avatar-circle">
+                        <mat-icon class="ai-icon">smart_toy</mat-icon>
+                        <div class="pulse-indicator"></div>
+                    </div>
+                </div>
+                <div class="header-text">
+                    <h3>AI Financial Assistant</h3>
+                    <p class="assistant-status">Ready to help with your finances</p>
+                </div>
+                <div class="chat-controls">
+                    <button mat-icon-button (click)="clearChat()" matTooltip="Clear Chat">
+                        <mat-icon>clear_all</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <mat-card-content class="chat-content">
+                <div class="chat-container">
+                    <div class="chat-messages" #chatMessagesContainer>
+                        <!-- Welcome Message -->
+                        <div class="message ai-message welcome-message" *ngIf="chatMessages.length === 0">
+                            <div class="message-avatar">
+                                <mat-icon>smart_toy</mat-icon>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-bubble welcome-bubble">
+                                    <div class="typing-indicator">
+                                        <span>👋</span> Hi! I'm your AI Financial Assistant. 
+                                        <br>Ask me anything about your finances, spending patterns, or budgeting tips!
+                                    </div>
+                                    <div class="suggestions">
+                                        <button *ngFor="let suggestion of welcomeSuggestions" 
+                                                mat-stroked-button 
+                                                class="suggestion-chip"
+                                                (click)="sendSuggestion(suggestion)">
+                                            {{ suggestion }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages -->
+                        <div *ngFor="let message of chatMessages; let i = index" 
+                             class="message" 
+                             [ngClass]="{'user-message': message.isUser, 'ai-message': !message.isUser}"
+                             [style.animation-delay.ms]="i * 100">
+                            
+                            <div class="message-avatar" *ngIf="!message.isUser">
+                                <mat-icon>smart_toy</mat-icon>
+                            </div>
+                            
+                            <div class="message-content">
+                                <div class="message-bubble" [ngClass]="{'user-bubble': message.isUser, 'ai-bubble': !message.isUser}">
+                                    <span class="message-text">{{ message.text }}</span>
+                                    <div class="message-time">{{ getCurrentTime() }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="message-avatar user-avatar" *ngIf="message.isUser">
+                                <mat-icon>person</mat-icon>
+                            </div>
+                        </div>
+
+                        <!-- Typing Indicator -->
+                        <div class="message ai-message typing-message" *ngIf="isTyping">
+                            <div class="message-avatar">
+                                <mat-icon>smart_toy</mat-icon>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-bubble ai-bubble">
+                                    <div class="typing-animation">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-section">
+                        <div class="whatsapp-input-container">
+                            <!-- Attachment/Emoji Button -->
+                            <button mat-icon-button class="attachment-button" matTooltip="Attach file or emoji">
+                                <mat-icon>add</mat-icon>
+                            </button>
+                            
+                            <!-- Input Field Container -->
+                            <div class="whatsapp-input-wrapper">
+                                <input type="text"
+                                       [(ngModel)]="currentMessage" 
+                                       (keyup.enter)="sendMessage()"
+                                       (focus)="onInputFocus()"
+                                       (blur)="onInputBlur()"
+                                       #messageInput
+                                       placeholder="Type a message about your finances..."
+                                       class="whatsapp-input"
+                                       autocomplete="off">
+                                
+                                <!-- Emoji Button -->
+                                <button mat-icon-button class="emoji-button" matTooltip="Emoji">
+                                    <mat-icon>sentiment_satisfied</mat-icon>
+                                </button>
+                            </div>
+                            
+                            <!-- Send/Voice Button -->
+                            <button mat-fab 
+                                    *ngIf="currentMessage.trim(); else voiceButton"
+                                    (click)="sendMessage()"
+                                    [disabled]="isTyping"
+                                    class="whatsapp-send-button"
+                                    matTooltip="Send Message">
+                                <mat-icon>{{ isTyping ? 'hourglass_empty' : 'send' }}</mat-icon>
+                            </button>
+                            
+                            <ng-template #voiceButton>
+                                <button mat-fab class="whatsapp-voice-button" matTooltip="Voice Message">
+                                    <mat-icon>mic</mat-icon>
+                                </button>
+                            </ng-template>
+                        </div>
+                        
+                        <!-- Typing indicator hint -->
+                        <div class="input-status" [class.visible]="showInputHint">
+                            <span class="status-text">💡 Try asking: "How can I reduce my expenses?" or "Show me my spending patterns"</span>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
